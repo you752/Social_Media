@@ -30,7 +30,7 @@ const bootstrap = async () => {
     }),
   );
 
-  app.use(generalRateLimit);
+  //app.use(generalRateLimit);
   app.use(helmet({ crossOriginResourcePolicy: false }));
 
   await connectDB();
