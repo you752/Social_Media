@@ -1,17 +1,4 @@
-
-import nodemailer from "nodemailer";
-
 import { env } from "../../config/env.service";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: env.googleAccount,
-    pass: env.passwordAccount,
-  },
-});
 
 export const sendEmail = async ({
   to,
@@ -24,14 +11,28 @@ export const sendEmail = async ({
   html?: string;
   text?: string;
 }) => {
-  const info = await transporter.sendMail({
-    from: `"Social Media App" <${env.googleAccount}>`,
-    to,
-    subject,
-    text,
-    html,
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: "Social Media App <onboarding@resend.dev>",
+      to,
+      subject,
+      text,
+      html,
+    }),
   });
 
-  return info;
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to send email");
+  }
+
+  return data;
 };
 
+بعدها:
