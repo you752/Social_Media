@@ -24,7 +24,7 @@ const googleAccount = process.env.GOOGLE_ACCOUNT;
 
 const passwordAccount = process.env.PASSWORD_ACCOUNT;
 
-const databaseUrl = process.env.Database_URL;
+const databaseUrl = process.env.DATABASE_URL;
 
 const serverUrl = process.env.SERVER_URL;
 
