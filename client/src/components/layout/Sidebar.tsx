@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Users, UserPlus, MessageCircle, User, LogOut, UsersRound } from "lucide-react";
+import { Home, Users, UserPlus, MessageCircle, User, LogOut, UsersRound, Bookmark, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Avatar } from "@/components/common/Avatar";
@@ -13,6 +13,8 @@ const links = [
   { to: "/friend-requests", label: "Requests", icon: UserPlus, badgeKey: "friendRequestCount" as const },
   { to: "/chat", label: "Messages", icon: MessageCircle, badgeKey: "unreadMessageCount" as const },
   { to: "/profile", label: "Profile", icon: User },
+  { to: "/bookmarks", label: "Bookmarks", icon: Bookmark },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar() {

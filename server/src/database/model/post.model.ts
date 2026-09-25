@@ -17,6 +17,10 @@ const postSchema = new Schema<IPost>(
     image: {
       type: String,
     },
+    taggedUsers: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true },
 );

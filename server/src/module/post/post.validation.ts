@@ -8,6 +8,14 @@ export const createPostValidation = z.object({
     .max(5000, { message: "content must not exceed 5000 characters" }),
 
   tags: z.array(z.string()).optional(),
+  taggedUsers: z.preprocess((value) => {
+    if (typeof value !== "string") return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return [value];
+    }
+  }, z.array(z.string().trim().min(1)).max(50).optional()),
 });
 
 export const updatePostValidation = createPostValidation;

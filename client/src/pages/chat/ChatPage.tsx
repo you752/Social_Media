@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, MessageCircle } from "lucide-react";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";
@@ -20,6 +20,7 @@ import type { User } from "@/types/user";
 
 export function ChatPage() {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const { showToast } = useToast();
   const { incrementUnreadMessages, resetUnreadMessages } = useNotifications();
@@ -103,7 +104,7 @@ export function ChatPage() {
   );
 
   return (
-    <div className="chat-page">
+    <div className={`chat-page${userId ? " chat-page-active" : ""}`}>
       <div className="chat-sidebar">
         <ConversationList />
       </div>
@@ -114,6 +115,13 @@ export function ChatPage() {
         ) : (
           <>
             <div className="chat-header">
+              <button
+                className="icon-btn chat-back"
+                onClick={() => navigate("/chat")}
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft size={20} />
+              </button>
               <Avatar user={peer} size="sm" online={peer?.isOnline} />
               <strong>{displayName(peer)}</strong>
             </div>

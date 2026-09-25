@@ -16,6 +16,8 @@ import { FriendRequestsPage } from "@/pages/friends/FriendRequestsPage";
 import { ChatPage } from "@/pages/chat/ChatPage";
 import { NotFoundPage } from "@/pages/not-found/NotFoundPage";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { BookmarksPage } from "@/pages/bookmarks/BookmarksPage";
+import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { AdminDashboardPage, AdminResourcePage } from "@/pages/admin/AdminPage";
 
 export function AppRoutes() {
@@ -43,6 +45,8 @@ export function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/friend-requests" element={<FriendRequestsPage />} />

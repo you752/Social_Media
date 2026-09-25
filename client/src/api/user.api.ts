@@ -27,3 +27,17 @@ export async function getUsers() {
   return unwrap<User[]>(res.data);
 }
 
+export async function getUserProfile(userId: string) {
+  const res = await api.get(`/user/profile/${userId}`);
+  return unwrap<any>(res.data);
+}
+
+export async function getUserSettings() {
+  const res = await api.get("/user/settings");
+  return unwrap<any>(res.data);
+}
+
+export async function updateUserSettings(payload: any) {
+  const res = await api.patch("/user/settings", payload);
+  return unwrap<any>(res.data);
+}

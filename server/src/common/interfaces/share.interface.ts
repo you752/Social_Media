@@ -1,8 +1,6 @@
-export interface IComment {
+export interface IShare {
   postId: string;
   userId: string;
-  content: string;
-  parentCommentId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

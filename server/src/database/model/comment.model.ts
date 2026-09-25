@@ -19,6 +19,10 @@ const commentSchema = new Schema<IComment>(
       trim: true,
       maxlength: 2000,
     },
+    parentCommentId: {
+      type: String,
+      index: true,
+    }
   },
   { timestamps: true },
 );

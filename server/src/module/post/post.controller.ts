@@ -12,7 +12,19 @@ import { uploadImage } from "../../common/service/cloudinary.service";
 
 const router = Router();
 
+router.get("/bookmarks", auth(), async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
+  const posts = await new PostService().getBookmarks(req.user.id);
+
+  return SuccessResponse({
+    res,
+    message: "Bookmarks retrieved successfully",
+    data: posts,
+  });
+});
 
 router.post(
   "/",
@@ -42,8 +54,9 @@ router.post(
   },
 );
 
-router.get("/", auth(), async (_req: Request, res: Response) => {
-  const posts = await new PostService().getPosts();
+router.get("/", auth(), async (req: Request, res: Response) => {
+  const currentUserId = req.user ? req.user.id : "";
+  const posts = await new PostService().getPosts(currentUserId);
 
   return SuccessResponse({
     res,
@@ -57,7 +70,7 @@ router.get("/mine", auth(), async (req: Request, res: Response) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const posts = await new PostService().getUserPosts(req.user.id);
+  const posts = await new PostService().getUserPosts(req.user.id, req.user.id);
 
   return SuccessResponse({
     res,
@@ -114,6 +127,36 @@ router.delete("/:postId", auth(), async (req: Request, res: Response) => {
     message: "Post deleted successfully",
     data: result,
   });
+});
+
+router.post("/:postId/like", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const result = await new PostService().likePost(req.params.postId as string, req.user.id);
+  return SuccessResponse({ res, message: "Post liked", data: result });
+});
+
+router.delete("/:postId/like", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const result = await new PostService().unlikePost(req.params.postId as string, req.user.id);
+  return SuccessResponse({ res, message: "Post unliked", data: result });
+});
+
+router.post("/:postId/share", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const result = await new PostService().sharePost(req.params.postId as string, req.user.id);
+  return SuccessResponse({ res, message: "Post shared successfully", data: result });
+});
+
+router.post("/:postId/bookmark", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const result = await new PostService().bookmarkPost(req.params.postId as string, req.user.id);
+  return SuccessResponse({ res, message: "Post bookmarked", data: result });
+});
+
+router.delete("/:postId/bookmark", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const result = await new PostService().removeBookmark(req.params.postId as string, req.user.id);
+  return SuccessResponse({ res, message: "Bookmark removed", data: result });
 });
 
 export default router;

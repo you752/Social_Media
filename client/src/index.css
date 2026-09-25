@@ -93,6 +93,12 @@ body,
   height: 100%;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);
@@ -368,6 +374,7 @@ button,
   max-width: 680px;
   width: 100%;
   margin: 0 auto;
+  min-width: 0;
 }
 
 .bottom-nav {
@@ -1415,6 +1422,7 @@ button,
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
+  overflow-wrap: anywhere;
 }
 
 .post-time {
@@ -1441,6 +1449,7 @@ button,
 
 .post-image img {
   width: 100%;
+  max-width: 100%;
   max-height: 500px;
   object-fit: cover;
   display: block;
@@ -1749,6 +1758,42 @@ button,
   border-color: var(--color-primary);
 }
 
+.comment-actions {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 0 46px;
+}
+
+.comment-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+.comment-action-liked {
+  color: var(--color-danger);
+}
+
+.comment-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 2px 0 0 46px;
+}
+
+.comment-reply {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 /* ==========================================================================
    Users / Friends
    ========================================================================== */
@@ -1868,6 +1913,7 @@ button,
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.3px;
+  overflow-wrap: anywhere;
 }
 
 .profile-username {
@@ -1893,6 +1939,31 @@ button,
   padding: 3px 10px;
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
+}
+
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-section h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-muted);
+  font-size: 14px;
 }
 
 /* ==========================================================================
@@ -1972,6 +2043,10 @@ button,
   font-size: 16px;
 }
 
+.chat-back {
+  display: none;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -1992,7 +2067,8 @@ button,
 }
 
 .message-bubble {
-  max-width: 62%;
+  max-width: min(62%, 520px);
+  min-width: 0;
   background: var(--color-surface);
   padding: 10px 14px;
   border-radius: 2px var(--radius-lg) var(--radius-lg) var(--radius-lg);
@@ -2012,6 +2088,7 @@ button,
   margin: 0;
   font-size: 14px;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   line-height: 1.5;
 }
 
@@ -2144,19 +2221,35 @@ button,
   }
 
   .navbar-search {
-    max-width: 220px;
+    max-width: min(220px, 42vw);
   }
 
   .chat-page {
-    flex-direction: column;
     height: calc(100vh - var(--navbar-height) - var(--bottom-nav-height) - 28px);
   }
 
   .chat-sidebar {
     width: 100%;
-    max-height: 160px;
+    max-height: none;
     border-right: none;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: none;
+  }
+
+  .chat-page:not(.chat-page-active) .chat-main {
+    display: none;
+  }
+
+  .chat-page.chat-page-active .chat-sidebar {
+    display: none;
+  }
+
+  .chat-page.chat-page-active .chat-main {
+    display: flex;
+  }
+
+  .chat-back {
+    display: inline-flex;
+    margin-left: -8px;
   }
 
   .user-grid {
@@ -2165,6 +2258,199 @@ button,
 
   .auth-card {
     padding: 28px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --bottom-nav-height: 64px;
+  }
+
+  .navbar {
+    gap: 10px;
+    padding: 0 10px;
+  }
+
+  .navbar-brand {
+    display: none;
+  }
+
+  .navbar-search {
+    margin: 0;
+    max-width: none;
+    padding: 7px 12px;
+  }
+
+  .navbar-actions {
+    margin-left: auto;
+  }
+
+  .app-content {
+    padding: 12px 10px;
+    padding-bottom: calc(var(--bottom-nav-height) + 12px);
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .create-post-trigger {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .create-post-trigger span {
+    min-width: 0;
+    padding: 9px 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .post-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .post-image {
+    margin: 0 -12px;
+  }
+
+  .post-footer {
+    gap: 0;
+    justify-content: space-between;
+  }
+
+  .post-action {
+    flex: 1;
+    justify-content: center;
+    padding: 7px 4px;
+  }
+
+  .profile-header {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .profile-header-info {
+    min-width: 0;
+    width: calc(100% - 116px);
+  }
+
+  .profile-header > .btn {
+    width: 100%;
+  }
+
+  .profile-details {
+    gap: 6px;
+  }
+
+  .friend-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .friend-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-left: 48px;
+  }
+
+  .user-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .user-card {
+    min-width: 0;
+    padding: 16px 10px;
+  }
+
+  .user-card-name,
+  .user-card-sub {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .chat-page {
+    height: calc(100vh - var(--navbar-height) - var(--bottom-nav-height) - 24px);
+    border-radius: var(--radius-md);
+  }
+
+  .chat-header {
+    padding: 10px 12px;
+  }
+
+  .chat-messages {
+    padding: 12px 10px;
+  }
+
+  .message-bubble {
+    max-width: 85%;
+    padding: 9px 12px;
+  }
+
+  .message-input {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .message-input textarea {
+    min-width: 0;
+    padding: 9px 12px;
+  }
+
+  .modal-overlay {
+    align-items: flex-start;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .modal {
+    max-height: calc(100vh - 20px);
+    border-radius: var(--radius-lg);
+  }
+
+  .modal-header,
+  .modal-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+    flex-wrap: wrap;
+  }
+
+  .modal-footer .btn {
+    flex: 1;
+  }
+
+  .toast-stack {
+    left: 10px;
+    right: 10px;
+    bottom: calc(var(--bottom-nav-height) + 10px);
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  :root {
+    --sidebar-width: 240px;
+  }
+
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .app-content {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 
@@ -2376,6 +2662,22 @@ button,
 @keyframes content-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    gap: 10px;
+  }
+
+  .navbar-search {
+    margin: 0;
+    max-width: none;
+  }
+
+  .post-footer {
+    gap: 0 !important;
+    justify-content: space-between;
+  }
 }
 
 @keyframes image-in {

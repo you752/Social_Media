@@ -4,6 +4,7 @@ import { SuccessResponse } from "../../common/exception/success.responce";
 import { validate } from "../../common/vaildation/vaildation";
 import {
   createCommentValidation,
+  createReplyValidation,
   updateCommentValidation,
 } from "./comment.validation";
 import { CommentService } from "./comment.service";
@@ -44,7 +45,8 @@ router.get(
       return res.status(400).json({ message: "postId is required" });
     }
 
-    const comments = await new CommentService().getComments(postId);
+    const currentUserId = req.user ? req.user.id : "";
+    const comments = await new CommentService().getComments(postId, currentUserId);
 
     return SuccessResponse({
       res,
@@ -105,5 +107,30 @@ router.delete(
     });
   },
 );
+
+router.post("/:commentId/reply", auth(), validate(createReplyValidation), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  
+  const reply = await new CommentService().createReply(req.params.commentId as string, req.body.content, req.user.id);
+  return SuccessResponse({ res, message: "Reply created", data: reply });
+});
+
+router.get("/:commentId/replies", auth(), async (req: Request, res: Response) => {
+  const currentUserId = req.user ? req.user.id : "";
+  const replies = await new CommentService().getReplies(req.params.commentId as string, currentUserId);
+  return SuccessResponse({ res, message: "Replies retrieved", data: replies });
+});
+
+router.post("/:commentId/like", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const result = await new CommentService().likeComment(req.params.commentId as string, req.user.id);
+  return SuccessResponse({ res, message: "Comment liked", data: result });
+});
+
+router.delete("/:commentId/like", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const result = await new CommentService().unlikeComment(req.params.commentId as string, req.user.id);
+  return SuccessResponse({ res, message: "Comment unliked", data: result });
+});
 
 export default router;

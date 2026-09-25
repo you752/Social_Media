@@ -6,6 +6,7 @@ export interface IPost {
   comments: string[];
   likes: string[];
   tags: string[];
+  taggedUsers?: string[];
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;

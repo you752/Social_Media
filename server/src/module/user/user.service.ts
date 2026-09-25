@@ -12,6 +12,10 @@ import { IUserUpdateData } from "../../common";
 import { UserRepository } from "./userRepo";
 import { publicImageUrl } from "../../common/utils/multer/multer";
 import { deleteImage } from "../../common/service/cloudinary.service";
+import { friendModel } from "../../database/model/friend.model";
+import { FriendStatus } from "../../common/enum/friend.enum";
+import { settingsModel } from "../../database/model/settings.model";
+import { PostService } from "../post/post.service";
 
 class UserService {
   private userRepository: UserRepository;
@@ -34,6 +38,45 @@ class UserService {
       ...obj,
       profileImage: publicImageUrl(obj.profileImage),
     };
+  }
+
+  async getProfile(user_id: string, currentUserId: string) {
+    const userData = await this.userRepository.findById({ id: user_id });
+    if (!userData) throw new NotFoundException("User not found");
+
+    const followers = await friendModel.countDocuments({ friendId: user_id, status: FriendStatus.ACCEPTED });
+    const following = await friendModel.countDocuments({ userId: user_id, status: FriendStatus.ACCEPTED });
+    const posts = await new PostService().getUserPosts(user_id, currentUserId);
+
+    const obj = userData.toObject();
+    return {
+      _id: obj._id,
+      username: obj.username,
+      firstName: obj.firstName,
+      lastName: obj.lastName,
+      profileImage: publicImageUrl(obj.profileImage),
+      followersCount: followers,
+      followingCount: following,
+      postsCount: posts.length,
+      posts: posts,
+    };
+  }
+
+  async getSettings(user_id: string) {
+    let settings = await settingsModel.findOne({ userId: user_id });
+    if (!settings) {
+      settings = await settingsModel.create({ userId: user_id });
+    }
+    return settings;
+  }
+
+  async updateSettings(user_id: string, data: any) {
+    const settings = await settingsModel.findOneAndUpdate(
+      { userId: user_id },
+      { $set: data },
+      { new: true, upsert: true }
+    );
+    return settings;
   }
 
   async getUsers(userId: string) {

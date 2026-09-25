@@ -3,6 +3,11 @@ import { unwrap } from "@/types/api";
 import type { Comment } from "@/types/post";
 import type { CreateCommentPayload, UpdateCommentPayload } from "@/types/comment";
 
+interface CommentLikeResult {
+  liked: boolean;
+  likesCount: number;
+}
+
 export async function createComment(payload: CreateCommentPayload) {
   const res = await api.post("/comment/", payload);
   return unwrap<Comment>(res.data);
@@ -21,4 +26,24 @@ export async function updateComment(commentId: string, payload: UpdateCommentPay
 export async function deleteComment(commentId: string) {
   const res = await api.delete(`/comment/${commentId}`);
   return unwrap(res.data);
+}
+
+export async function createReply(commentId: string, content: string) {
+  const res = await api.post(`/comment/${commentId}/reply`, { content });
+  return unwrap<Comment>(res.data);
+}
+
+export async function getReplies(commentId: string) {
+  const res = await api.get(`/comment/${commentId}/replies`);
+  return unwrap<Comment[]>(res.data);
+}
+
+export async function likeComment(commentId: string) {
+  const res = await api.post(`/comment/${commentId}/like`);
+  return unwrap<CommentLikeResult>(res.data);
+}
+
+export async function unlikeComment(commentId: string) {
+  const res = await api.delete(`/comment/${commentId}/like`);
+  return unwrap<CommentLikeResult>(res.data);
 }
