@@ -1,3 +1,4 @@
+
 import express, { Request, Response } from "express";
 import authRouter from "./module/auth/auth.controller";
 import cors from "cors";
@@ -20,18 +21,23 @@ import adminRouter from "./module/admin/admin.controller";
 
 const bootstrap = async () => {
   const app = express();
+
   app.use(
     cors({
       origin: true,
     }),
   );
+
   app.use(generalRateLimit);
   app.use(helmet({ crossOriginResourcePolicy: false }));
+
   await connectDB();
   await connectRS();
 
-  // app.all("/graphql", createHandler({ schema:schema, context: (req) => ({ req }) }));
+  // app.all("/graphql", createHandler({ schema: schema, context: (req) => ({ req }) }));
+
   app.use(express.json());
+
   app.use("/auth", authRouter);
   app.use("/user", userRouter);
   app.use("/friend", friendRouter);
@@ -39,13 +45,25 @@ const bootstrap = async () => {
   app.use("/post", postRouter);
   app.use("/chat", chatRouter);
   app.use("/admin", adminRouter);
+
   app.use((req, res) => {
-    res.status(404).json({ success: false, message: "Route not found" });
+    res.status(404).json({
+      success: false,
+      message: "Route not found",
+    });
   });
+
   app.use(globalErrorHandler);
-  const httpServer = app.listen(env.port, () => {
-    console.log("server is running");
-  });
+
+  const httpServer = app.listen(
+    Number(env.port) || 8000,
+    "0.0.0.0",
+    () => {
+      console.log("server is running");
+    },
+  );
+
   realtimeModule.initialize(httpServer);
-}
+};
+
 export default bootstrap;
