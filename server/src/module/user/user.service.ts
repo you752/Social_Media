@@ -7,7 +7,10 @@ import {
   hashWord,
   compareWord,
 } from "../../common/middleware/security/HashWord";
-import { EncryptWord } from "../../common/middleware/security/phoneCrypto";
+import {
+  decryptPhoneNumber,
+  encryptPhoneNumber,
+} from "../../common/middleware/security/phoneCrypto";
 import { IUserUpdateData } from "../../common";
 import { UserRepository } from "./userRepo";
 import { publicImageUrl } from "../../common/utils/multer/multer";
@@ -38,6 +41,9 @@ class UserService {
     delete obj.passwordChangedAt;
     return {
       ...obj,
+      phoneNumber: obj.phoneNumber
+        ? await decryptPhoneNumber(obj.phoneNumber)
+        : obj.phoneNumber,
       profileImage: publicImageUrl(obj.profileImage),
     };
   }
@@ -191,7 +197,7 @@ class UserService {
     if (phone || phoneNumber) {
       const updatedPhone = phone || phoneNumber;
       if (updatedPhone) {
-        updatedFields.phoneNumber = await EncryptWord(updatedPhone);
+        updatedFields.phoneNumber = await encryptPhoneNumber(updatedPhone);
       }
     }
 
@@ -234,6 +240,9 @@ class UserService {
     delete obj.passwordChangedAt;
     return {
       ...obj,
+      phoneNumber: obj.phoneNumber
+        ? await decryptPhoneNumber(obj.phoneNumber)
+        : obj.phoneNumber,
       profileImage: publicImageUrl(obj.profileImage),
     };
   }

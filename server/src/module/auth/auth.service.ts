@@ -4,6 +4,10 @@ import { OAuth2Client } from "google-auth-library";
 
 import { sendEmail } from "../../common/email/sendMail";
 import {
+  decryptPhoneNumber,
+  encryptPhoneNumber,
+} from "../../common/middleware/security/phoneCrypto";
+import {
   BadRequestException,
   ConflictException,
   NotFoundException,
@@ -31,11 +35,14 @@ class AuthService {
     this.userRepository = new authRepository();
   }
 
-  private sanitizeUser(user: any) {
+  private async sanitizeUser(user: any) {
     const plain =
       typeof user?.toObject === "function" ? user.toObject() : { ...user };
     delete plain.password;
     delete plain.passwordChangedAt;
+    if (plain.phoneNumber) {
+      plain.phoneNumber = await decryptPhoneNumber(plain.phoneNumber);
+    }
     return plain;
   }
 
@@ -191,7 +198,7 @@ class AuthService {
       lastName: rest.join(" "),
       email,
       password: hashedPassword,
-      phoneNumber,
+      phoneNumber: phoneNumber ? await encryptPhoneNumber(phoneNumber) : undefined,
       age,
       unique_name: normalizedUniqueName,
       gender,
@@ -204,7 +211,7 @@ class AuthService {
     return {
       success: true,
       message: "Account created successfully. Please verify your email.",
-      user: this.sanitizeUser(user),
+      user: await this.sanitizeUser(user),
     };
   }
 
@@ -245,7 +252,7 @@ class AuthService {
       success: true,
       message: "Login success",
       ...tokens,
-      user: this.sanitizeUser(user),
+      user: await this.sanitizeUser(user),
     };
   }
 
@@ -605,7 +612,7 @@ class AuthService {
         success: true,
         message: "Google login successful",
         ...tokens,
-        user: this.sanitizeUser(existUser),
+        user: await this.sanitizeUser(existUser),
       };
     }
 
@@ -643,7 +650,7 @@ class AuthService {
       success: true,
       message: "Google authentication successful",
       ...tokens,
-      user: this.sanitizeUser(addUser),
+      user: await this.sanitizeUser(addUser),
     };
   }
 
