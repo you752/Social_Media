@@ -1902,20 +1902,23 @@ button,
   gap: 10px;
   border-top: 1px solid var(--color-border);
   padding-top: 14px;
+  min-width: 0;
 }
 
 .comment-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
   align-items: flex-start;
   position: relative;
+  min-width: 0;
 }
 
 .comment-bubble {
   background: var(--color-bg);
   border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
   padding: 9px 14px;
-  flex: 1;
+  min-width: 0;
 }
 
 .comment-bubble-header {
@@ -1923,11 +1926,17 @@ button,
   gap: 8px;
   align-items: baseline;
   font-size: 13px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .comment-bubble-header strong {
   font-weight: 700;
   font-size: 13px;
+  min-width: 0;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .comment-bubble p {
@@ -1943,6 +1952,8 @@ button,
 
 .comment-menu {
   position: relative;
+  grid-column: 2;
+  min-width: 0;
 }
 
 .comment-edit-row {
@@ -2019,13 +2030,19 @@ button,
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 2px 0 0 46px;
+  margin: 2px 0 0;
+  min-width: 0;
 }
 
 .comment-reply {
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  min-width: 0;
+}
+
+.comment-reply .comment-bubble {
+  flex: 1;
 }
 
 /* ==========================================================================
