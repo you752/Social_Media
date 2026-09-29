@@ -1,5 +1,5 @@
-import { useRef, useState, type ReactNode } from "react";
-import { Check, Upload, UserRound } from "lucide-react";
+import { Children, isValidElement, useRef, useState, type ReactNode } from "react";
+import { Camera, Check, Upload, UserRound } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 
@@ -36,6 +36,10 @@ export function ImagePicker({ children, onSelected, compact = false }: ImagePick
   const [open, setOpen] = useState(false);
   const [avatarMode, setAvatarMode] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
+  const pickerChildren = Children.toArray(children);
+  const uploadLabel = isValidElement<{ children?: ReactNode }>(pickerChildren[1])
+    ? pickerChildren[1].props.children
+    : pickerChildren[1] ?? "Upload photo";
 
   function close() {
     setOpen(false);
@@ -62,7 +66,16 @@ export function ImagePicker({ children, onSelected, compact = false }: ImagePick
   return (
     <>
       <button type="button" className={compact ? "attach-btn" : "avatar-upload"} onClick={() => setOpen(true)}>
-        {children}
+        {compact ? children : (
+          <>
+            <span className="avatar-upload-circle">
+              {pickerChildren[0] ?? <UserRound size={34} aria-hidden="true" />}
+              <span className="avatar-upload-camera" aria-hidden="true"><Camera size={16} /></span>
+            </span>
+            <span className="avatar-upload-label">{uploadLabel}</span>
+            <span className="avatar-upload-hint">Add a photo to personalize your profile</span>
+          </>
+        )}
       </button>
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={handleFileChange} />
       <Modal open={open} onClose={close} title={avatarMode ? "Choose an avatar" : "Add image"} footer={avatarMode ? (
@@ -97,7 +110,7 @@ export function ImagePicker({ children, onSelected, compact = false }: ImagePick
             </button>
             <button type="button" className="image-source-option" onClick={() => setAvatarMode(true)}>
               <span className="image-source-icon"><UserRound size={20} /></span>
-              <span><strong>Choose an avatar</strong><small>Select a Nexa avatar</small></span>
+              <span><strong>Choose an avatar</strong><small>Select a Wave avatar</small></span>
             </button>
           </div>
         )}

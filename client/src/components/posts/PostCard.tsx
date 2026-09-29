@@ -108,6 +108,12 @@ export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
 
   return (
     <article className="card post-card">
+      {/* Ambient animated background layer — pointer-events: none, z-index: 0, behind all content */}
+      <div className="post-ambient-bg" aria-hidden="true">
+        <div className="ambient-wave ambient-wave-1" />
+        <div className="ambient-wave ambient-wave-2" />
+        <div className="ambient-wave ambient-wave-3" />
+      </div>
       <div className="post-header">
         <Avatar user={author} size="md" />
         <div className="post-header-meta">

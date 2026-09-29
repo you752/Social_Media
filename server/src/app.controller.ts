@@ -18,6 +18,7 @@ import { schema } from "./module/gql/schema.gql";
 import { realtimeModule } from "./module/realtime/realtime.module";
 import chatRouter from "./module/chat/chat.controller";
 import adminRouter from "./module/admin/admin.controller";
+import notificationRouter from "./module/notification/notification.controller";
 
 const bootstrap = async () => {
   const app = express();
@@ -47,6 +48,7 @@ const bootstrap = async () => {
   app.use("/post", postRouter);
   app.use("/chat", chatRouter);
   app.use("/admin", adminRouter);
+  app.use("/notifications", notificationRouter);
 
   app.use((req, res) => {
     res.status(404).json({
@@ -69,4 +71,3 @@ const bootstrap = async () => {
 };
 
 export default bootstrap;
-

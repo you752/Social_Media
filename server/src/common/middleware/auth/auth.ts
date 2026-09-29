@@ -50,16 +50,18 @@ export class TokenService {
   static async generateToken(
     payload: ITokenPayload,
     role: Role = UserRoleEnum.USER,
+    issuedAt?: number,
   ) {
     const accessSignature = this.getAccessSignature(role);
     const refreshSignature = this.getRefreshSignature(role);
+    const tokenPayload = issuedAt === undefined ? payload : { ...payload, iat: issuedAt };
 
-    const accessToken = jwt.sign(payload, accessSignature, {
+    const accessToken = jwt.sign(tokenPayload, accessSignature, {
       expiresIn: this.ACCESS_EXPIRES_IN,
       audience: String(role),
     });
 
-    const refreshToken = jwt.sign(payload, refreshSignature, {
+    const refreshToken = jwt.sign(tokenPayload, refreshSignature, {
       expiresIn: this.REFRESH_EXPIRES_IN,
       audience: String(role),
     });
@@ -81,10 +83,25 @@ export class TokenService {
     }
 
     const verified = await this.verifyRefreshToken(refreshToken, role);
+    const user = await userModel.findById(verified.id).select("passwordChangedAt");
+    if (
+      !user ||
+      (user.passwordChangedAt &&
+        (!verified.iat ||
+          verified.iat < Math.ceil(user.passwordChangedAt.getTime() / 1000)))
+    ) {
+      throw new Error("Refresh token is no longer valid");
+    }
     const signature = this.getAccessSignature(role);
+    const issuedAt = Math.max(
+      Math.floor(Date.now() / 1000),
+      user.passwordChangedAt
+        ? Math.ceil(user.passwordChangedAt.getTime() / 1000)
+        : 0,
+    );
 
     const accessToken = jwt.sign(
-      { id: verified.id, email: verified.email },
+      { id: verified.id, email: verified.email, iat: issuedAt },
       signature,
       {
         expiresIn: this.ACCESS_EXPIRES_IN,
@@ -111,6 +128,16 @@ export class TokenService {
   ): Promise<VerifiedPayload> {
     const signature = this.getRefreshSignature(role);
     return jwt.verify(token, signature) as VerifiedPayload;
+  }
+
+  static async isIssuedBeforePasswordChange(userId: string, issuedAt?: number) {
+    const user = await userModel.findById(userId).select("passwordChangedAt");
+    if (!user) return true;
+    return Boolean(
+      user.passwordChangedAt &&
+      (!issuedAt ||
+        issuedAt < Math.ceil(user.passwordChangedAt.getTime() / 1000)),
+    );
   }
 
   // ---------- revocation ----------
@@ -161,10 +188,18 @@ export class TokenService {
 
         const decoded = await TokenService.verifyAccessToken(token, role);
 
-        const user = await userModel.findById(decoded.id);
+        const user = await userModel.findById(decoded.id).select("-password");
 
         if (!user) {
           throw new Error("User not found");
+        }
+
+        if (
+          user.passwordChangedAt &&
+          (!decoded.iat ||
+            decoded.iat < Math.ceil(user.passwordChangedAt.getTime() / 1000))
+        ) {
+          throw new Error("Session expired. Please log in again");
         }
 
         if (user.isBlocked) {

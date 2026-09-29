@@ -37,6 +37,9 @@ const userSchema = new mongoose.Schema<IUser>(
         return this.provider === providerEnum.SYSTEM;
       },
     },
+    passwordChangedAt: {
+      type: Date,
+    },
 
     age: {
       type: Number,

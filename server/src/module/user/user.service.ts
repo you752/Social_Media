@@ -34,6 +34,8 @@ class UserService {
     }
 
     const obj = userData.toObject();
+    delete obj.password;
+    delete obj.passwordChangedAt;
     return {
       ...obj,
       profileImage: publicImageUrl(obj.profileImage),
@@ -79,16 +81,58 @@ class UserService {
     return settings;
   }
 
-  async getUsers(userId: string) {
+  async getUsers(userId: string, discoverableOnly = false) {
+    const relationships = await friendModel.find(
+      { $or: [{ userId }, { friendId: userId }] },
+      "userId friendId status",
+    ).lean();
+
+    const friendshipStatuses = new Map<string, "friends" | "blocked" | "pending-sent" | "pending-received">();
+    for (const relationship of relationships) {
+      const senderId = String(relationship.userId);
+      const receiverId = String(relationship.friendId);
+      const otherUserId = senderId === userId ? receiverId : senderId;
+      const status = String(relationship.status).toUpperCase();
+
+      if (status === FriendStatus.ACCEPTED) {
+        friendshipStatuses.set(otherUserId, "friends");
+      } else if (status === FriendStatus.BLOCKED) {
+        friendshipStatuses.set(otherUserId, "blocked");
+      } else if (
+        status === FriendStatus.PENDING &&
+        friendshipStatuses.get(otherUserId) !== "friends" &&
+        friendshipStatuses.get(otherUserId) !== "blocked"
+      ) {
+        const nextStatus = senderId === userId ? "pending-sent" : "pending-received";
+        const currentStatus = friendshipStatuses.get(otherUserId);
+        if (currentStatus !== "pending-received" || nextStatus === "pending-received") {
+          friendshipStatuses.set(otherUserId, nextStatus);
+        }
+      }
+    }
+
+    const excludedUserIds = [...friendshipStatuses.keys()];
+    const excludedIds = discoverableOnly ? [...excludedUserIds, userId] : [userId];
+    const userFilter: any = { _id: { $nin: excludedIds } };
+
     const users = await this.userRepository.findAll({
-      filter: { _id: { $ne: userId } },
-      select: "_id username firstName lastName email unique_name profileImage",
+      filter: userFilter,
+      select: discoverableOnly
+        ? "_id username firstName lastName unique_name profileImage"
+        : "_id username firstName lastName email unique_name profileImage",
       lean: true,
     });
 
-    return users.map((user: any) => ({
+    const uniqueUsers = new Map<string, any>();
+    for (const user of users) {
+      const id = String(user._id);
+      if (id !== userId && !uniqueUsers.has(id)) uniqueUsers.set(id, user);
+    }
+
+    return [...uniqueUsers.values()].map((user: any) => ({
       ...user,
       profileImage: publicImageUrl(user.profileImage),
+      friendshipStatus: friendshipStatuses.get(String(user._id)) ?? "none",
     }));
   }
 
@@ -186,6 +230,8 @@ class UserService {
     }
 
     const obj = typeof updatedUser.toObject === "function" ? updatedUser.toObject() : updatedUser;
+    delete obj.password;
+    delete obj.passwordChangedAt;
     return {
       ...obj,
       profileImage: publicImageUrl(obj.profileImage),

@@ -20,6 +20,7 @@ import { redisService } from "../../common/redis/redis.service";
 import { TokenService } from "../../common/middleware/auth/auth";
 
 const OTP_TTL_SECONDS = 600;
+const RESET_PASSWORD_TTL_SECONDS = 900;
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_RESEND_COOLDOWN_SECONDS = 60;
 
@@ -34,6 +35,7 @@ class AuthService {
     const plain =
       typeof user?.toObject === "function" ? user.toObject() : { ...user };
     delete plain.password;
+    delete plain.passwordChangedAt;
     return plain;
   }
 
@@ -59,6 +61,10 @@ class AuthService {
 
   private forgotResetTokenKey(email: string) {
     return `FORGOT_PASSWORD_RESET:${email.trim().toLowerCase()}`;
+  }
+
+  private passwordChangeTime() {
+    return new Date((Math.floor(Date.now() / 1000) + 1) * 1000);
   }
 
   private async issueOtp(email: string, name?: string) {
@@ -114,7 +120,11 @@ class AuthService {
     const hashedOtp = await hashWord(String(otp));
     const normalizedEmail = email.trim().toLowerCase();
 
-    await redisService.setData(this.forgotOtpKey(normalizedEmail), hashedOtp, OTP_TTL_SECONDS);
+    await redisService.setData(
+      this.forgotOtpKey(normalizedEmail),
+      hashedOtp,
+      RESET_PASSWORD_TTL_SECONDS,
+    );
     await redisService.deleteData(this.forgotOtpAttemptsKey(normalizedEmail));
     await redisService.setData(
       this.otpCooldownKey(normalizedEmail),
@@ -125,7 +135,7 @@ class AuthService {
     await sendEmail({
       to: normalizedEmail,
       subject: "Reset your Nexa password",
-      text: `Your Nexa password reset OTP is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you did not request a password reset, you can safely ignore this email.`,
+      text: `Your Nexa password reset OTP is: ${otp}\n\nThis OTP will expire in 15 minutes.\n\nIf you did not request a password reset, you can safely ignore this email.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 560px; margin: auto; padding: 32px 28px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff; color: #0f172a;">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
@@ -135,7 +145,7 @@ class AuthService {
           <h2 style="margin: 0 0 12px; color: #0f172a;">Reset your password</h2>
           <p style="margin: 0 0 18px; color: #475569;">Your Nexa password reset OTP is:</p>
           <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; text-align: center; margin: 20px 0 24px; color: #2563eb;">${otp}</div>
-          <p style="margin: 0 0 10px; color: #475569;">This OTP will expire in <strong>10 minutes</strong>.</p>
+          <p style="margin: 0 0 10px; color: #475569;">This OTP will expire in <strong>15 minutes</strong>.</p>
           <p style="margin: 0; color: #64748b; font-size: 13px;">If you did not request a password reset, you can safely ignore this email.</p>
         </div>
       `,
@@ -389,7 +399,11 @@ class AuthService {
 
     const isOtpMatch = await compareWord(otp, storedOtpHash);
     if (!isOtpMatch) {
-      await redisService.setData(attemptsKey, String(attempts + 1), OTP_TTL_SECONDS);
+      await redisService.setData(
+        attemptsKey,
+        String(attempts + 1),
+        RESET_PASSWORD_TTL_SECONDS,
+      );
       throw new BadRequestException("Invalid OTP");
     }
 
@@ -399,7 +413,7 @@ class AuthService {
     await redisService.setData(
       this.forgotResetTokenKey(email),
       hashedResetToken,
-      OTP_TTL_SECONDS,
+      RESET_PASSWORD_TTL_SECONDS,
     );
     await redisService.deleteData(this.forgotOtpKey(email));
     await redisService.deleteData(attemptsKey);
@@ -424,6 +438,11 @@ class AuthService {
     if (newPassword !== confirmPassword) {
       throw new BadRequestException("Passwords do not match");
     }
+    if (newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
+      throw new BadRequestException(
+        "Password must be at least 8 characters and contain at least one letter and one number",
+      );
+    }
 
     const user = await this.userRepository.findOne({
       filter: { email },
@@ -444,9 +463,10 @@ class AuthService {
     }
 
     const hashedPassword = await hashWord(newPassword);
+    const passwordChangedAt = this.passwordChangeTime();
     await this.userRepository.findOneAndUpdate({
       filter: { email },
-      data: { password: hashedPassword },
+      data: { password: hashedPassword, passwordChangedAt },
     });
 
     await redisService.deleteData(this.forgotResetTokenKey(email));
@@ -454,7 +474,60 @@ class AuthService {
     return {
       success: true,
       message: "Password reset successfully",
+      userId: user._id.toString(),
     };
+  }
+
+  async changePassword(
+    userId: string,
+    data: { currentPassword: string; newPassword: string; confirmNewPassword: string },
+  ) {
+    const user = await this.userRepository.findById({
+      id: userId,
+      select: "+password",
+    });
+    if (!user?.password) {
+      throw new BadRequestException("Password change is unavailable for this account");
+    }
+
+    if (!(await compareWord(data.currentPassword, user.password))) {
+      throw new BadRequestException("Current password is incorrect");
+    }
+    if (data.newPassword === data.currentPassword) {
+      throw new BadRequestException("New password must be different from your current password");
+    }
+    if (
+      data.newPassword.length < 8 ||
+      !/[A-Za-z]/.test(data.newPassword) ||
+      !/\d/.test(data.newPassword)
+    ) {
+      throw new BadRequestException(
+        "Password must be at least 8 characters and contain at least one letter and one number",
+      );
+    }
+    if (data.newPassword !== data.confirmNewPassword) {
+      throw new BadRequestException("Passwords do not match");
+    }
+
+    const passwordChangedAt = this.passwordChangeTime();
+    const hashedPassword = await hashWord(data.newPassword);
+    const updatedUser = await this.userRepository.findByIdAndUpdate({
+      id: userId,
+      data: { password: hashedPassword, passwordChangedAt },
+      select: "-password",
+    });
+    if (!updatedUser) {
+      throw new NotFoundException("User not found");
+    }
+
+    const issuedAt = Math.ceil(passwordChangedAt.getTime() / 1000);
+    const tokens = await TokenService.generateToken(
+      { id: userId, email: user.email },
+      user.role,
+      issuedAt,
+    );
+
+    return tokens;
   }
 
   async googleAuth(body: any) {

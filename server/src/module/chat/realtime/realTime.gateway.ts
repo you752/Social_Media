@@ -13,15 +13,18 @@ type RealtimeSocket = Socket & {
   };
 };
 
-const userRoom = (userId: string) => `user:${userId}`;
+const userRoom = (userId: string) => userId;
 const postRoom = (postId: string) => `post:${postId}`;
+const conversationRoom = (firstUserId: string, secondUserId: string) =>
+  `conversation:${[firstUserId, secondUserId].sort().join(":")}`;
 
 class RealtimeGateway {
   private namespace?: ReturnType<Server["of"]>;
 
   initialize(httpServer: HttpServer) {
     const io = new Server(httpServer, {
-      cors: { origin: "*" },
+      cors: { origin: true, methods: ["GET", "POST"] },
+      transports: ["websocket", "polling"],
     });
 
     this.namespace = io.of("/user");
@@ -42,7 +45,11 @@ class RealtimeGateway {
           UserRoleEnum.USER,
         );
 
-        if (!decoded.id || !Types.ObjectId.isValid(decoded.id)) {
+        if (
+          !decoded.id ||
+          !Types.ObjectId.isValid(decoded.id) ||
+          await TokenService.isIssuedBeforePasswordChange(decoded.id, decoded.iat)
+        ) {
           return next(new Error("Unauthorized"));
         }
 
@@ -58,9 +65,38 @@ class RealtimeGateway {
       const userId = realtimeSocket.data.userId;
       const userObjectId = new Types.ObjectId(userId);
 
-      await redisService.addSocket(userObjectId, socket.id);
-      await socket.join(userRoom(userId));
-      this.namespace?.emit("user:online", { userId });
+      try {
+        await redisService.addSocket(userObjectId, socket.id);
+        await socket.join(userRoom(userId));
+      } catch (error) {
+        console.error("Could not register realtime socket", error);
+        socket.disconnect(true);
+        return;
+      }
+      this.emitToUser(userId, "user:online", { userId });
+
+      socket.on("chat:view", (peerId: unknown) => {
+        if (
+          typeof peerId !== "string" ||
+          !Types.ObjectId.isValid(peerId) ||
+          peerId === userId
+        ) {
+          socket.emit("socket:error", { message: "Invalid conversation user" });
+          return;
+        }
+        void Promise.resolve(socket.join(conversationRoom(userId, peerId))).catch((error: unknown) => {
+          console.error("Could not join conversation room", error);
+          socket.emit("socket:error", { message: "Could not join conversation" });
+        });
+      });
+
+      socket.on("chat:leave", (peerId: unknown) => {
+        if (typeof peerId === "string" && Types.ObjectId.isValid(peerId)) {
+          void Promise.resolve(socket.leave(conversationRoom(userId, peerId))).catch((error: unknown) => {
+            console.error("Could not leave conversation room", error);
+          });
+        }
+      });
 
       socket.on("post:join", async (postId: unknown) => {
         if (typeof postId === "string" && postId.length > 0) {
@@ -103,7 +139,7 @@ class RealtimeGateway {
               },
               userId,
             );
-            this.deliverMessage(message);
+            await this.deliverMessage(message);
             acknowledge?.({ success: true, message });
           } catch (error) {
             acknowledge?.({
@@ -115,9 +151,13 @@ class RealtimeGateway {
       );
 
       socket.on("disconnect", async () => {
-        await redisService.removeSocket(userObjectId, socket.id);
-        if (!(await redisService.hasSockets(userObjectId))) {
-          this.namespace?.emit("user:offline", { userId });
+        try {
+          await redisService.removeSocket(userObjectId, socket.id);
+          if (!(await redisService.hasSockets(userObjectId))) {
+            this.emitToUser(userId, "user:offline", { userId });
+          }
+        } catch (error) {
+          console.error("Could not unregister realtime socket", error);
         }
       });
     });
@@ -129,13 +169,39 @@ class RealtimeGateway {
     this.namespace?.to(userRoom(userId)).emit(event, payload);
   }
 
+  disconnectUserSockets(userId: string) {
+    this.namespace?.in(userRoom(userId)).disconnectSockets(true);
+  }
+
+  isUserViewingConversation(userId: string, otherUserId: string) {
+    const room = conversationRoom(userId, otherUserId);
+    return [...(this.namespace?.sockets.values() ?? [])].some(
+      (socket) => socket.data.userId === userId && socket.rooms.has(room),
+    );
+  }
+
   emitToPost(postId: string, event: string, payload: unknown) {
     this.namespace?.to(postRoom(postId)).emit(event, payload);
   }
 
-  deliverMessage(message: IChatMessage) {
+  async deliverMessage(message: IChatMessage) {
     this.emitToUser(message.recipientId, "chat:message", message);
     this.emitToUser(message.senderId, "chat:message", message);
+
+    if (this.isUserViewingConversation(message.recipientId, message.senderId)) {
+      return;
+    }
+
+    const { createNotification } = await import("../../notification/notification.service.js");
+    await createNotification(
+      {
+        recipientId: message.recipientId,
+        senderId: message.senderId,
+        type: "message",
+        ...(message._id ? { reference: String(message._id) } : {}),
+      },
+      this.emitToUser.bind(this),
+    );
   }
 }
 

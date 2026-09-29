@@ -59,6 +59,15 @@ export async function resetPassword(payload: { email: string; resetToken: string
   return unwrap(res.data);
 }
 
+export async function changePassword(payload: {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}) {
+  const res = await api.patch("/auth/change-password", payload);
+  return unwrap<{ accessToken: string; refreshToken: string }>(res.data);
+}
+
 export async function logout() {
   const res = await api.post("/auth/logout");
   return unwrap(res.data);

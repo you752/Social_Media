@@ -55,7 +55,7 @@ export function ForgotPasswordPage() {
         ) : (
           <>
             <h1>Forgot password</h1>
-            <p className="auth-subtitle">Enter the email tied to your Nexa account.</p>
+            <p className="auth-subtitle">Enter the email tied to your Wave account.</p>
 
             <form onSubmit={handleSubmit} className="auth-form">
               <Input

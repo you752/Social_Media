@@ -6,6 +6,9 @@ import { validate } from "../../common/vaildation/vaildation";
 import { friendValidation } from "./friend.validation";
 import { realtimeModule } from "../realtime/realtime.module";
 import { catchAsync } from "../../common/utils/catchAsync";
+import { friendModel } from "../../database/model/friend.model";
+import { FriendStatus } from "../../common/enum/friend.enum";
+import { createNotification } from "../notification/notification.service";
 
 const router = Router();
 
@@ -25,6 +28,14 @@ router.post(
     const request = await friendService.sendFriendRequest(payload);
     if (req.body.friendId) {
       realtimeModule.emitToUser(req.body.friendId, "friend:request", request);
+      await createNotification(
+        {
+          recipientId: req.body.friendId,
+          senderId: req.user.id,
+          type: "friend_request",
+        },
+        realtimeModule.emitToUser.bind(realtimeModule),
+      );
     }
     SuccessResponse({
       res,
@@ -43,14 +54,35 @@ router.post(
       return res.status(401).json({ message: "Unauthorized" });
     }
     const friendService = new friendservice();
+    const requestFilter = req.body.requestId
+      ? {
+          _id: req.body.requestId,
+          friendId: req.user.id,
+          status: FriendStatus.PENDING,
+        }
+      : {
+          userId: req.body.friendId,
+          friendId: req.user.id,
+          status: FriendStatus.PENDING,
+        };
+    const pendingRequest = await friendModel.findOne(requestFilter).lean();
     const payload = {
       userId: req.user.id,
       friendId: req.body.friendId,
       requestId: req.body.requestId,
     };
     const friendship = await friendService.acceptFriendRequest(payload);
-    if (req.body.friendId) {
-      realtimeModule.emitToUser(req.body.friendId, "friend:accepted", friendship);
+    if (pendingRequest) {
+      realtimeModule.emitToUser(pendingRequest.userId, "friend:accepted", friendship);
+      await createNotification(
+        {
+          recipientId: pendingRequest.userId,
+          senderId: req.user.id,
+          type: "friend_accepted",
+          reference: String(pendingRequest._id),
+        },
+        realtimeModule.emitToUser.bind(realtimeModule),
+      );
     }
     SuccessResponse({
       res,

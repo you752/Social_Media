@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import authService from "./auth.service";
 import { SuccessResponse } from "../../common/exception/success.responce";
 import {
+  changePasswordRateLimit,
   loginRateLimit,
   sendOtpRateLimit,
 } from "../../common/middleware/rateLimit/rateLimit";
@@ -10,6 +11,7 @@ import { auth } from "../../common/middleware/auth/auth";
 import { validate } from "../../common/vaildation/vaildation";
 import {
   forgotPasswordSchema,
+  changePasswordSchema,
   loginSchema,
   resetPasswordSchema,
   signupSchema,
@@ -18,8 +20,31 @@ import {
 import { upload } from "../../common/utils/multer/multer";
 import { catchAsync } from "../../common/utils/catchAsync";
 import { uploadImage } from "../../common/service/cloudinary.service";
+import { realtimeModule } from "../realtime/realtime.module";
 
 const authRouter = Router();
+
+authRouter.patch(
+  "/change-password",
+  auth(),
+  changePasswordRateLimit,
+  validate(changePasswordSchema),
+  catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const result = await authService.changePassword(
+      req.user.id,
+      req.body,
+    );
+    realtimeModule.disconnectUserSockets(req.user.id);
+    SuccessResponse({
+      res,
+      message: "Password changed successfully",
+      data: result,
+    });
+  }),
+);
 
 authRouter.post(
   "/login",
@@ -107,13 +132,16 @@ authRouter.post(
 
 authRouter.post(
   "/reset-password",
+  sendOtpRateLimit,
   validate(resetPasswordSchema),
   catchAsync(async (req: Request, res: Response) => {
     const result = await authService.resetPassword(req.body);
+    realtimeModule.disconnectUserSockets(result.userId);
+    const { userId: _userId, ...response } = result;
     SuccessResponse({
       res,
       message: "Password reset successfully",
-      data: result,
+      data: response,
     });
   }),
 );

@@ -6,18 +6,36 @@ import { tokenStorage } from "@/utils/storage";
 let socket: Socket | null = null;
 
 export function connectSocket(): Socket {
-  if (socket && socket.connected) return socket;
-
   const token = tokenStorage.get();
+  if (socket) {
+    socket.auth = { token };
+    if (!socket.connected && !socket.active) socket.connect();
+    return socket;
+  }
 
   const baseUrl = (import.meta.env.VITE_SOCKET_URL || "http://localhost:8000").replace(/\/+$/, "");
   const socketUrl = `${baseUrl}/user`;
 
   socket = io(socketUrl, {
     auth: { token },
-    autoConnect: true,
+    autoConnect: false,
     transports: ["websocket", "polling"],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
   });
+
+  socket.on("connect_error", (error) => {
+    console.error("Realtime connection failed", error.message);
+  });
+  socket.on("disconnect", (reason) => {
+    if (reason !== "io client disconnect") {
+      console.warn("Realtime connection disconnected", reason);
+    }
+  });
+  socket.connect();
 
   return socket;
 }
@@ -26,10 +44,23 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
+export function refreshSocketAuthentication() {
+  const token = tokenStorage.get();
+  if (!socket) {
+    connectSocket();
+    return;
+  }
+
+  socket.auth = { token };
+  if (socket.connected) socket.disconnect();
+  socket.connect();
+}
+
 export function disconnectSocket() {
   if (socket) {
-    socket.removeAllListeners();
-    socket.disconnect();
+    const activeSocket = socket;
     socket = null;
+    activeSocket.removeAllListeners();
+    activeSocket.disconnect();
   }
 }

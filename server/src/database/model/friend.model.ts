@@ -13,6 +13,10 @@ const friendSchema = new Schema<IFriend>(
         type: String,
         required: true,
     },
+    relationshipKey: {
+        type: String,
+        select: false,
+    },
     status: {
         type: String,
         default: FriendStatus.PENDING,
@@ -21,8 +25,8 @@ const friendSchema = new Schema<IFriend>(
   { timestamps: true }
 );
 
+friendSchema.index({ relationshipKey: 1 }, { unique: true, sparse: true });
 
 export const friendModel = mongoose.model<IFriend>("Friend", friendSchema);
-
 
 

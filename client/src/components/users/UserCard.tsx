@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserPlus, Clock, MessageCircle, Users as UsersIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar } from "@/components/common/Avatar";
@@ -9,18 +9,30 @@ import { getApiErrorMessage } from "@/api/axios";
 import { useToast } from "@/hooks/useToast";
 import type { User } from "@/types/user";
 
-export function UserCard({ user }: { user: User }) {
+interface UserCardProps {
+  user: User;
+  onRequestStarted: (userId: string) => void;
+  onRequestFailed: (user: User) => void;
+}
+
+export function UserCard({ user, onRequestStarted, onRequestFailed }: UserCardProps) {
   const [status, setStatus] = useState(user.friendshipStatus ?? "none");
   const [sending, setSending] = useState(false);
   const { showToast } = useToast();
 
+  useEffect(() => {
+    setStatus(user.friendshipStatus ?? "none");
+  }, [user.friendshipStatus]);
+
   async function handleSendRequest() {
+    onRequestStarted(user._id);
     setSending(true);
     try {
       await friendApi.sendFriendRequest(user._id);
-      setStatus("pending");
+      setStatus("pending-sent");
       showToast("Friend request sent", "success");
     } catch (err) {
+      onRequestFailed(user);
       showToast(getApiErrorMessage(err, "Could not send request"), "error");
     } finally {
       setSending(false);
@@ -29,29 +41,41 @@ export function UserCard({ user }: { user: User }) {
 
   return (
     <div className="card user-card">
-      <Avatar user={user} size="lg" />
-      <strong className="user-card-name">{displayName(user)}</strong>
-      {user.username && <span className="user-card-sub">@{user.uniqueName || user.username}</span>}
+      <div className="user-card-identity">
+        <Avatar user={user} size="md" />
+        <div className="user-card-info">
+          <strong className="user-card-name">{displayName(user)}</strong>
+          {(user.uniqueName || user.username) && (
+            <span className="user-card-sub">@{user.uniqueName || user.username}</span>
+          )}
+        </div>
+      </div>
 
       <div className="user-card-actions">
         {status === "friends" ? (
           <Button variant="secondary" size="sm" disabled>
             <UsersIcon size={14} /> Friends
           </Button>
-        ) : status === "pending" ? (
+        ) : status === "pending" || status === "pending-sent" ? (
           <Button variant="secondary" size="sm" disabled>
-            <Clock size={14} /> Pending
+            <Clock size={14} /> Request Sent
           </Button>
+        ) : status === "pending-received" ? (
+          <Link className="user-card-request-link" to="/friend-requests">
+            <Button variant="secondary" size="sm">
+              <Clock size={14} /> Respond
+            </Button>
+          </Link>
         ) : status === "blocked" ? (
           <Button variant="secondary" size="sm" disabled>
             Blocked
           </Button>
         ) : (
           <Button variant="primary" size="sm" loading={sending} onClick={handleSendRequest}>
-            <UserPlus size={14} /> Add friend
+            <UserPlus size={14} /> Add Friend
           </Button>
         )}
-        <Link to={`/chat/${user._id}`}>
+        <Link className="user-card-chat-link" to={`/chat/${user._id}`}>
           <Button variant="ghost" size="sm">
             <MessageCircle size={14} /> Chat
           </Button>

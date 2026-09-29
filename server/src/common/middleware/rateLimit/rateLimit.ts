@@ -11,6 +11,17 @@ export const loginRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
+export const changePasswordRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    success: false,
+    message: "Too many password change attempts. Please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export const sendOtpRateLimit = rateLimit({
   windowMs: 60 * 1000,
   max: 3,

@@ -9,6 +9,7 @@ export interface IUser {
   unique_name: string;
   email: string;
   password?: string;
+  passwordChangedAt?: Date;
   age: number;
   phoneNumber: string;
   profileImage?: string;

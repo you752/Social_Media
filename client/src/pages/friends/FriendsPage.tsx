@@ -14,13 +14,23 @@ export function FriendsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    friendApi
-      .getFriends()
-      .then((data) => setFriends(Array.isArray(data) ? data : []))
-      .catch((err) => showToast(getApiErrorMessage(err, "Could not load friends"), "error"))
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const loadFriends = () => {
+      friendApi
+        .getFriends()
+        .then((data) => setFriends(Array.isArray(data) ? data : []))
+        .catch((err) => showToast(getApiErrorMessage(err, "Could not load friends"), "error"))
+        .finally(() => setLoading(false));
+    };
+    const onFriendshipChanged = () => loadFriends();
+
+    loadFriends();
+    window.addEventListener(friendApi.FRIENDSHIP_CHANGED_EVENT, onFriendshipChanged);
+    window.addEventListener("focus", onFriendshipChanged);
+    return () => {
+      window.removeEventListener(friendApi.FRIENDSHIP_CHANGED_EVENT, onFriendshipChanged);
+      window.removeEventListener("focus", onFriendshipChanged);
+    };
+  }, [showToast]);
 
   return (
     <div className="friends-page">

@@ -10,6 +10,7 @@ import { PageSpinner } from "@/components/common/Spinner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSocketEvent } from "@/hooks/useSocket";
 import { useNotifications } from "@/hooks/useNotifications";
+import { getSocket } from "@/services/socket";
 import * as chatApi from "@/api/chat.api";
 import * as userApi from "@/api/user.api";
 import { getApiErrorMessage } from "@/api/axios";
@@ -31,6 +32,16 @@ export function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const seenIds = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!userId) return;
+    const socket = getSocket();
+    if (!socket) return;
+    socket.emit("chat:view", userId);
+    return () => {
+      socket.emit("chat:leave", userId);
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -77,7 +88,6 @@ export function ChatPage() {
         }
       } else if (message.senderId !== currentUser?._id) {
         incrementUnreadMessages();
-        showToast("New message", "info");
       }
     },
     [userId, currentUser?._id, incrementUnreadMessages, showToast]

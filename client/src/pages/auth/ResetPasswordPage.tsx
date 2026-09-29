@@ -72,7 +72,7 @@ export function ResetPasswordPage() {
       <div className="auth-card">
         <NexaBrand className="auth-brand" />
         <h1>Set new password</h1>
-        <p className="auth-subtitle">Create a strong password for your Nexa account.</p>
+        <p className="auth-subtitle">Create a strong password for your Wave account.</p>
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="password-field">

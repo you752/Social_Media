@@ -9,7 +9,7 @@ import * as authApi from "@/api/auth.api";
 import * as userApi from "@/api/user.api";
 import { registerUnauthorizedHandler, getApiErrorMessage } from "@/api/axios";
 import { tokenStorage } from "@/utils/storage";
-import { connectSocket, disconnectSocket } from "@/services/socket";
+import { connectSocket, disconnectSocket, refreshSocketAuthentication } from "@/services/socket";
 import type { LoginPayload, SignupPayload, User } from "@/types/user";
 import { AuthContext, type AuthContextValue } from "./auth-context";
 
@@ -109,6 +109,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authApi.resetPassword(payload);
   }, []);
 
+  const changePassword = useCallback(async (payload: {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }) => {
+    const tokens = await authApi.changePassword(payload);
+    if (!tokens.accessToken) throw new Error("The server did not return a new access token");
+    tokenStorage.set(tokens.accessToken);
+    refreshSocketAuthentication();
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -136,11 +147,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       forgotPassword,
       verifyResetOtp,
       resetPassword,
+      changePassword,
       logout,
       refreshProfile,
       setUser,
     }),
-    [user, loading, login, googleLogin, signup, verifyAccount, resendOtp, forgotPassword, verifyResetOtp, resetPassword, logout, refreshProfile]
+    [user, loading, login, googleLogin, signup, verifyAccount, resendOtp, forgotPassword, verifyResetOtp, resetPassword, changePassword, logout, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

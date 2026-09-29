@@ -13,6 +13,7 @@ export interface AuthContextValue {
   forgotPassword: (payload: { email: string }) => Promise<void>;
   verifyResetOtp: (payload: { email: string; otp: string }) => Promise<{ resetToken?: string }>;
   resetPassword: (payload: { email: string; resetToken: string; newPassword: string; confirmPassword: string }) => Promise<void>;
+  changePassword: (payload: { currentPassword: string; newPassword: string; confirmNewPassword: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   setUser: (user: User | null) => void;

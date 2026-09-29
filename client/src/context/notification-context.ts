@@ -1,19 +1,14 @@
 import { createContext } from "react";
-
-export interface AppNotification {
-  id: string;
-  type: "friend:request" | "friend:accepted" | "friend:rejected" | "message" | "comment";
-  message: string;
-  createdAt: string;
-  read: boolean;
-}
+import type { AppNotification } from "@/types/notification";
 
 export interface NotificationContextValue {
   notifications: AppNotification[];
   unreadCount: number;
   friendRequestCount: number;
   unreadMessageCount: number;
-  markAllRead: () => void;
+  markRead: (id: string) => Promise<void>;
+  markAllRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
   bumpFriendRequestCount: (delta: number) => void;
   resetUnreadMessages: () => void;
   incrementUnreadMessages: () => void;

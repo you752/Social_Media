@@ -14,21 +14,54 @@ export class friendservice {
     this.userRepository = new UserRepository();
   }
 
+  private relationshipFilter(userId: string, friendId: string) {
+    return {
+      $or: [
+        { userId, friendId },
+        { userId: friendId, friendId: userId },
+      ],
+    };
+  }
+
+  private relationshipKey(userId: string, friendId: string) {
+    return [userId, friendId].sort().join(":");
+  }
+
+  private isDuplicateKeyError(error: unknown): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 11000
+    );
+  }
+
   async sendFriendRequest(data: { userId: string; friendId: string }) {
     if (data.userId === data.friendId) {
       throw new Error("Cannot send friend request to yourself");
     }
 
-    const existing = await this.FriendRepository.findOne({
-      filter: {
-        $or: [
-          { userId: data.userId, friendId: data.friendId },
-          { userId: data.friendId, friendId: data.userId },
-        ],
-      },
-    });
+    const relationshipFilter = this.relationshipFilter(data.userId, data.friendId);
+    const existingRecords: Array<IFriend & { _id: Types.ObjectId }> =
+      await this.FriendRepository.findAll({
+        filter: relationshipFilter,
+        lean: true,
+      });
+    const existing = existingRecords.find(
+      (record) => record.status === FriendStatus.ACCEPTED
+    ) ?? existingRecords[0];
 
     if (existing) {
+      await Promise.all(
+        existingRecords
+          .filter((record) => String(record._id) !== String(existing._id))
+          .map((record) => this.FriendRepository.deleteOne({ _id: record._id }))
+      );
+      await this.FriendRepository.updateOne({
+        filter: { _id: existing._id },
+        data: { relationshipKey: this.relationshipKey(data.userId, data.friendId) },
+      });
+
       if (existing.status === FriendStatus.ACCEPTED) {
         throw new Error("You are already friends with this user");
       }
@@ -37,32 +70,67 @@ export class friendservice {
       }
       return this.FriendRepository.updateOne({
         filter: { _id: existing._id },
-        data: { userId: data.userId, friendId: data.friendId, status: FriendStatus.PENDING },
+        data: {
+          userId: data.userId,
+          friendId: data.friendId,
+          status: FriendStatus.PENDING,
+          relationshipKey: this.relationshipKey(data.userId, data.friendId),
+        },
       });
     }
 
-    return this.FriendRepository.create({
-      userId: data.userId,
-      friendId: data.friendId,
-      status: FriendStatus.PENDING,
-    });
+    try {
+      return await this.FriendRepository.create({
+        userId: data.userId,
+        friendId: data.friendId,
+        status: FriendStatus.PENDING,
+        relationshipKey: this.relationshipKey(data.userId, data.friendId),
+      });
+    } catch (error) {
+      if (!this.isDuplicateKeyError(error)) throw error;
+
+      const duplicate = await this.FriendRepository.findOne({
+        filter: relationshipFilter,
+        lean: true,
+      });
+      if (duplicate?.status === FriendStatus.ACCEPTED) {
+        throw new Error("You are already friends with this user");
+      }
+      if (duplicate?.status === FriendStatus.PENDING) {
+        throw new Error("A pending friend request already exists");
+      }
+      if (!duplicate) throw error;
+
+      return this.FriendRepository.updateOne({
+        filter: { _id: duplicate._id },
+        data: {
+          userId: data.userId,
+          friendId: data.friendId,
+          status: FriendStatus.PENDING,
+          relationshipKey: this.relationshipKey(data.userId, data.friendId),
+        },
+      });
+    }
   }
 
   async acceptFriendRequest(data: { userId: string; friendId?: string; requestId?: string }) {
     let existing;
     if (data.requestId && Types.ObjectId.isValid(data.requestId)) {
       existing = await this.FriendRepository.findOne({
-        filter: { _id: data.requestId, status: FriendStatus.PENDING },
+        filter: {
+          _id: data.requestId,
+          friendId: data.userId,
+          status: FriendStatus.PENDING,
+        },
       });
     }
 
     if (!existing && data.friendId) {
       existing = await this.FriendRepository.findOne({
         filter: {
-          $or: [
-            { userId: data.friendId, friendId: data.userId, status: FriendStatus.PENDING },
-            { userId: data.userId, friendId: data.friendId, status: FriendStatus.PENDING },
-          ],
+          userId: data.friendId,
+          friendId: data.userId,
+          status: FriendStatus.PENDING,
         },
       });
     }
@@ -110,21 +178,24 @@ export class friendservice {
     const friendDocs = await this.FriendRepository.findAll({
       filter: {
         $or: [
-          { userId, status: FriendStatus.ACCEPTED },
-          { friendId: userId, status: FriendStatus.ACCEPTED },
+          { userId },
+          { friendId: userId },
         ],
       },
       lean: true,
     });
 
-    const otherUserIds = friendDocs.map((doc: any) =>
-      doc.userId === userId ? doc.friendId : doc.userId
-    ).filter(Boolean);
+    const otherUserIds = friendDocs
+      .filter((doc: any) => String(doc.status).toUpperCase() === FriendStatus.ACCEPTED)
+      .map((doc: any) =>
+        doc.userId === userId ? doc.friendId : doc.userId
+      )
+      .filter(Boolean);
 
     if (otherUserIds.length === 0) return [];
 
     const users = await this.userRepository.findAll({
-      filter: { _id: { $in: otherUserIds } },
+      filter: { _id: { $in: [...new Set(otherUserIds)] } },
       select: "_id username firstName lastName email unique_name profileImage",
       lean: true,
     });
@@ -184,26 +255,49 @@ export class friendservice {
   }
 
   async blockUser(data: { userId: string; friendId: string }) {
-    const existing = await this.FriendRepository.findOne({
-      filter: {
-        $or: [
-          { userId: data.userId, friendId: data.friendId },
-          { userId: data.friendId, friendId: data.userId },
-        ],
-      },
-    });
+    const relationshipFilter = this.relationshipFilter(data.userId, data.friendId);
+    const existingRecords: Array<IFriend & { _id: Types.ObjectId }> =
+      await this.FriendRepository.findAll({
+        filter: relationshipFilter,
+        lean: true,
+      });
+    const existing = existingRecords[0];
 
     if (existing) {
+      await Promise.all(
+        existingRecords
+          .filter((record) => String(record._id) !== String(existing._id))
+          .map((record) => this.FriendRepository.deleteOne({ _id: record._id }))
+      );
       await this.FriendRepository.updateOne({
         filter: { _id: existing._id },
-        data: { status: FriendStatus.BLOCKED },
+        data: {
+          status: FriendStatus.BLOCKED,
+          relationshipKey: this.relationshipKey(data.userId, data.friendId),
+        },
       });
     } else {
-      await this.FriendRepository.create({
-        userId: data.userId,
-        friendId: data.friendId,
-        status: FriendStatus.BLOCKED,
-      });
+      try {
+        await this.FriendRepository.create({
+          userId: data.userId,
+          friendId: data.friendId,
+          status: FriendStatus.BLOCKED,
+          relationshipKey: this.relationshipKey(data.userId, data.friendId),
+        });
+      } catch (error) {
+        if (!this.isDuplicateKeyError(error)) throw error;
+        const concurrentRelationship = await this.FriendRepository.findOne({
+          filter: relationshipFilter,
+        });
+        if (!concurrentRelationship) throw error;
+        await this.FriendRepository.updateOne({
+          filter: { _id: concurrentRelationship._id },
+          data: {
+            status: FriendStatus.BLOCKED,
+            relationshipKey: this.relationshipKey(data.userId, data.friendId),
+          },
+        });
+      }
     }
 
     return { blocked: true };

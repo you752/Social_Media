@@ -16,13 +16,23 @@ export function FriendRequestsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    friendApi
-      .getFriendRequests()
-      .then((data) => setRequests(Array.isArray(data) ? data : []))
-      .catch((err) => showToast(getApiErrorMessage(err, "Could not load friend requests"), "error"))
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const loadRequests = () => {
+      friendApi
+        .getFriendRequests()
+        .then((data) => setRequests(Array.isArray(data) ? data : []))
+        .catch((err) => showToast(getApiErrorMessage(err, "Could not load friend requests"), "error"))
+        .finally(() => setLoading(false));
+    };
+    const onFriendshipChanged = () => loadRequests();
+
+    loadRequests();
+    window.addEventListener(friendApi.FRIENDSHIP_CHANGED_EVENT, onFriendshipChanged);
+    window.addEventListener("focus", onFriendshipChanged);
+    return () => {
+      window.removeEventListener(friendApi.FRIENDSHIP_CHANGED_EVENT, onFriendshipChanged);
+      window.removeEventListener("focus", onFriendshipChanged);
+    };
+  }, [showToast]);
 
   function handleHandled(requestId: string) {
     setRequests((prev) => prev.filter((r) => r._id !== requestId));

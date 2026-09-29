@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Pencil, Image as ImageIcon } from "lucide-react";
 import { Avatar } from "@/components/common/Avatar";
 import { Button } from "@/components/common/Button";
@@ -18,20 +19,82 @@ import type { Post } from "@/types/post";
 import { ImagePicker } from "@/components/common/ImagePicker";
 
 export function ProfilePage() {
+  const { userId } = useParams();
   const { user, refreshProfile } = useAuth();
   const { showToast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [publicProfile, setPublicProfile] = useState<{
+    _id: string;
+    username?: string;
+    uniqueName?: string;
+    firstName?: string;
+    lastName?: string;
+    profileImage?: string;
+    followersCount: number;
+    followingCount: number;
+    posts: Post[];
+  } | null>(null);
 
   useEffect(() => {
+    if (userId) {
+      setPostsLoading(true);
+      userApi
+        .getUserProfile(userId)
+        .then((profile) => {
+          setPublicProfile(profile);
+          setPosts(Array.isArray(profile.posts) ? profile.posts : []);
+        })
+        .catch((error) => {
+          setPublicProfile(null);
+          showToast(getApiErrorMessage(error, "Could not load profile"), "error");
+        })
+        .finally(() => setPostsLoading(false));
+      return;
+    }
+
+    setPublicProfile(null);
+    setPostsLoading(true);
     postApi
       .getMyPosts()
       .then((data) => setPosts(Array.isArray(data) ? data : []))
       .catch(() => setPosts([]))
       .finally(() => setPostsLoading(false));
-  }, []);
+  }, [userId, showToast]);
+
+  if (userId) {
+    if (postsLoading) return <PageSpinner />;
+    if (!publicProfile) {
+      return <EmptyState icon={<FileText size={28} />} title="Profile unavailable" description="This profile could not be loaded." />;
+    }
+    const name = [publicProfile.firstName, publicProfile.lastName].filter(Boolean).join(" ") || publicProfile.username;
+    return (
+      <div className="profile-page">
+        <div className="card profile-header">
+          <Avatar user={publicProfile} size="xl" />
+          <div className="profile-header-info">
+            <h2>{name}</h2>
+            {publicProfile.uniqueName && <span className="profile-username">@{publicProfile.uniqueName}</span>}
+            <div className="profile-details">
+              <span>{publicProfile.followersCount} followers</span>
+              <span>{publicProfile.followingCount} following</span>
+              <span>{posts.length} posts</span>
+            </div>
+          </div>
+        </div>
+        <h3 className="section-title">{name}'s posts</h3>
+        {postsLoading ? (
+          <PageSpinner />
+        ) : posts.length === 0 ? (
+          <EmptyState icon={<FileText size={28} />} title="No posts yet" description="This person has not shared any posts." />
+        ) : (
+          posts.map((post) => <PostCard key={post._id} post={post} />)
+        )}
+      </div>
+    );
+  }
 
   if (!user) return <PageSpinner />;
 

@@ -30,7 +30,8 @@ router.get("/", auth(), async (req: Request, res: Response) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const users = await UserService.getUsers(req.user.id);
+  const discoverableOnly = req.query.discoverable === "true";
+  const users = await UserService.getUsers(req.user.id, discoverableOnly);
   return SuccessResponse({
     res,
     message: "Users retrieved successfully",

@@ -22,8 +22,10 @@ export async function updateProfile(payload: UpdateProfilePayload) {
   return unwrap<User>(res.data);
 }
 
-export async function getUsers() {
-  const res = await api.get("/user/");
+export async function getUsers(options: { discoverableOnly?: boolean } = {}) {
+  const res = await api.get("/user/", {
+    params: options.discoverableOnly ? { discoverable: true } : undefined,
+  });
   return unwrap<User[]>(res.data);
 }
 

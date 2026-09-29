@@ -14,9 +14,9 @@ const labels: Record<string, { label: string; icon: typeof Users }> = {
 export function AdminDashboardPage() {
   const [data, setData] = useState<Awaited<ReturnType<typeof adminApi.getDashboard>>>();
   useEffect(() => { adminApi.getDashboard().then(setData).catch(console.error); }, []);
-  return <section className="admin-page"><header><div><p className="admin-eyebrow">NEXA CONTROL CENTER</p><h1>Dashboard overview</h1><p className="admin-muted">Monitor your community and keep Nexa healthy.</p></div></header>
+  return <section className="admin-page"><header><div><p className="admin-eyebrow">WAVE CONTROL CENTER</p><h1>Dashboard overview</h1><p className="admin-muted">Monitor your community and keep Wave healthy.</p></div></header>
     <div className="admin-stat-grid">{Object.entries(labels).map(([key, item]) => { const Icon = item.icon; return <div className="admin-stat" key={key}><Icon size={20} /><span>{item.label}</span><strong>{data?.stats[key] ?? "—"}</strong></div>; })}</div>
-    <div className="admin-panel"><h2>Recent activity</h2><div className="admin-activity">{(data?.recentUsers || []).map((user) => <div key={String(user._id)}><Users size={16} /><span><strong>{String(user.username || user.email || "New user")}</strong> joined Nexa</span></div>)}{!data?.recentUsers?.length && <p className="admin-muted">No recent activity.</p>}</div></div>
+    <div className="admin-panel"><h2>Recent activity</h2><div className="admin-activity">{(data?.recentUsers || []).map((user) => <div key={String(user._id)}><Users size={16} /><span><strong>{String(user.username || user.email || "New user")}</strong> joined Wave</span></div>)}{!data?.recentUsers?.length && <p className="admin-muted">No recent activity.</p>}</div></div>
   </section>;
 }
 

@@ -18,7 +18,7 @@ export interface User {
   profileImage?: string;
   // Friendship state relative to the current viewer, if the backend
   // includes it on a user object (ASSUMPTION - field name may differ).
-  friendshipStatus?: "none" | "pending" | "friends" | "blocked" | string;
+  friendshipStatus?: "none" | "pending" | "pending-sent" | "pending-received" | "friends" | "blocked";
   isOnline?: boolean;
   createdAt?: string;
   updatedAt?: string;

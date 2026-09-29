@@ -43,7 +43,7 @@ router.post(
     }
 
     const message = await new ChatService().sendMessage(req.body, req.user.id);
-    realtimeModule.deliverMessage(message);
+    await realtimeModule.deliverMessage(message);
 
     return SuccessResponse({
       res,

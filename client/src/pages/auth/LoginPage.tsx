@@ -6,7 +6,7 @@ import { Input } from "@/components/common/Input";
 import { Button } from "@/components/common/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { getApiErrorMessage } from "@/api/axios";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { AuthLayout } from "@/components/common/AuthLayout";
 import { useToast } from "@/hooks/useToast";
 
 // Custom Google SVG icon
@@ -74,11 +74,10 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <NexaBrand className="auth-brand" />
+    <AuthLayout>
+      <div className="auth-card auth-split-card">
         <h1>Welcome back</h1>
-        <p className="auth-subtitle">Log in to your Nexa account.</p>
+        <p className="auth-subtitle">Log in to your Wave account.</p>
 
         <Button 
           type="button" 
@@ -135,6 +134,6 @@ export function LoginPage() {
           Do not have an account? <Link to="/signup">Sign up</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

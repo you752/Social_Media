@@ -3,19 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nexa</title>
-    <link rel="icon" type="image/jpeg" href="/nexa-logo.jpg" />
+    <title>Wave</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script>
       (function () {
         var theme = localStorage.getItem("nexa-theme");
         if (theme === "dark") {
           document.documentElement.dataset.theme = "dark";
           document.documentElement.style.colorScheme = "dark";
+        } else {
+          document.documentElement.dataset.theme = "light";
+          document.documentElement.style.colorScheme = "light";
         }
       })();
     </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>

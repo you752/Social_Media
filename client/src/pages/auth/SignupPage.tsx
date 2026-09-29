@@ -6,7 +6,7 @@ import { Input } from "@/components/common/Input";
 import { Button } from "@/components/common/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { getApiErrorMessage } from "@/api/axios";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { AuthLayout } from "@/components/common/AuthLayout";
 import { ImagePicker } from "@/components/common/ImagePicker";
 
 // Custom Google SVG icon
@@ -98,10 +98,9 @@ export function SignupPage() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card auth-card-wide">
-        <NexaBrand className="auth-brand" />
-        <h1>Join Nexa</h1>
+    <AuthLayout>
+      <div className="auth-card auth-card-wide auth-split-card auth-split-card-signup">
+        <h1>Join Wave</h1>
         <p className="auth-subtitle">Create your account and start connecting.</p>
 
         <Button 
@@ -128,7 +127,7 @@ export function SignupPage() {
             setProfileImage(file);
             setPreview(imagePreview);
           }}>
-            {preview ? <img src={preview} alt="Profile preview" /> : <UserRound size={28} />}
+            {preview ? <img src={preview} alt="Profile preview" /> : <UserRound size={34} aria-hidden="true" />}
             <span>Upload photo</span>
           </ImagePicker>
 
@@ -177,6 +176,6 @@ export function SignupPage() {
           Already have an account? <Link to="/login">Log in</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
