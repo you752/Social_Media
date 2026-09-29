@@ -14,6 +14,7 @@ import { connectSocket, getSocket } from "@/services/socket";
 import { FRIENDSHIP_CHANGED_EVENT } from "@/api/friend.api";
 import { displayName } from "@/utils/getUser";
 import type { AppNotification } from "@/types/notification";
+import { UserRoleEnum } from "@/types/user";
 import { NotificationContext } from "./notification-context";
 
 function notificationMessage(notification: AppNotification) {
@@ -24,7 +25,7 @@ function notificationMessage(notification: AppNotification) {
 }
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -38,7 +39,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || Number(user?.role) === UserRoleEnum.ADMIN) {
       notificationsRef.current = [];
       setNotifications([]);
       setUnreadCount(0);
@@ -106,7 +107,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       active = false;
       socket.off("notification:new", onNotification);
     };
-  }, [isAuthenticated, showToast, updateNotifications]);
+  }, [isAuthenticated, showToast, updateNotifications, user?.role]);
 
   const markRead = useCallback(async (id: string) => {
     try {

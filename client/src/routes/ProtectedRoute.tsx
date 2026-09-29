@@ -13,16 +13,22 @@ export function ProtectedRoute() {
 }
 
 export function PublicOnlyRoute() {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) return <PageSpinner />;
   if (isAuthenticated) {
-    return (
-      <Navigate
-        to={Number(user?.role) === UserRoleEnum.ADMIN ? "/admin" : "/home"}
-        replace
-      />
-    );
+    return <Navigate to="/home" replace />;
+  }
+
+  return <Outlet />;
+}
+
+export function AdminLoginRoute() {
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) return <PageSpinner />;
+  if (isAuthenticated && Number(user?.role) === UserRoleEnum.ADMIN) {
+    return <Navigate to="/admin" replace />;
   }
 
   return <Outlet />;
@@ -31,7 +37,7 @@ export function PublicOnlyRoute() {
 export function AdminRoute() {
   const { user, isAuthenticated, loading } = useAuth();
   if (loading) return <PageSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
   if (Number(user?.role) !== UserRoleEnum.ADMIN) {
     return <Navigate to="/home" replace />;
   }

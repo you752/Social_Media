@@ -41,7 +41,10 @@ api.interceptors.response.use(
       data: error.response?.data,
     });
 
-    if (error.response?.status === 401) {
+    const requestPath = error.config?.url?.split("?")[0] ?? "";
+    const isNotificationRequest = /(?:^|\/)notifications(?:\/|$)/.test(requestPath);
+
+    if (error.response?.status === 401 && !isNotificationRequest) {
       onUnauthorized?.();
     }
 

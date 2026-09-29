@@ -1,5 +1,10 @@
 import { Routes, Route } from "react-router-dom";
-import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from "./ProtectedRoute";
+import {
+  AdminLoginRoute,
+  AdminRoute,
+  ProtectedRoute,
+  PublicOnlyRoute,
+} from "./ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 import { LoginPage } from "@/pages/auth/LoginPage";
@@ -19,10 +24,15 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { BookmarksPage } from "@/pages/bookmarks/BookmarksPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { AdminDashboardPage, AdminResourcePage } from "@/pages/admin/AdminPage";
+import { AdminLoginPage } from "@/pages/auth/AdminLoginPage";
 
 export function AppRoutes() {
   return (
     <Routes>
+      <Route element={<AdminLoginRoute />}>
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+      </Route>
+
       <Route element={<PublicOnlyRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
