@@ -25,6 +25,11 @@ export interface User {
   [key: string]: unknown;
 }
 
+export enum UserRoleEnum {
+  USER = 0,
+  ADMIN = 1,
+}
+
 export interface SignupPayload {
   username: string;
   uniqueName: string;

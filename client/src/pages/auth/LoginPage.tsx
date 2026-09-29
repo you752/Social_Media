@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getApiErrorMessage } from "@/api/axios";
 import { AuthLayout } from "@/components/common/AuthLayout";
 import { useToast } from "@/hooks/useToast";
+import { UserRoleEnum } from "@/types/user";
 
 // Custom Google SVG icon
 const GoogleIcon = () => (
@@ -37,8 +38,11 @@ export function LoginPage() {
       setGoogleLoading(true);
       setError("");
       try {
-        await googleLogin({ credential: tokenResponse.access_token });
-        navigate("/", { replace: true });
+        const user = await googleLogin({ credential: tokenResponse.access_token });
+        navigate(
+          Number(user.role) === UserRoleEnum.ADMIN ? "/admin" : "/home",
+          { replace: true },
+        );
       } catch (err) {
         setError(getApiErrorMessage(err, "Google authentication failed"));
       } finally {
@@ -64,8 +68,11 @@ export function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      await login({ email, password });
-      navigate("/", { replace: true });
+      const user = await login({ email, password });
+      navigate(
+        Number(user.role) === UserRoleEnum.ADMIN ? "/admin" : "/home",
+        { replace: true },
+      );
     } catch (err) {
       setError(getApiErrorMessage(err, "Invalid email or password"));
     } finally {

@@ -21,9 +21,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await userApi.getProfile();
       setUser(profile);
+      return profile;
     } catch {
       setUser(null);
       tokenStorage.clear();
+      return null;
     }
   }, []);
 
@@ -59,12 +61,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof token === "string") {
       tokenStorage.set(token);
     }
-    if ((result as Record<string, unknown>)?.user) {
-      setUser((result as { user: User }).user);
-    } else {
-      await refreshProfile();
+    const responseUser = (result as { user?: User }).user;
+    if (responseUser?.role !== undefined) {
+      setUser(responseUser);
+    }
+    const authenticatedUser =
+      responseUser?.role !== undefined ? responseUser : await refreshProfile();
+    if (!authenticatedUser) {
+      throw new Error("Could not load the authenticated user profile");
     }
     connectSocket();
+    return authenticatedUser;
   }, [refreshProfile]);
 
   const googleLogin = useCallback(async (payload: { credential?: string; idToken?: string }) => {
@@ -75,12 +82,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof token === "string") {
       tokenStorage.set(token);
     }
-    if ((result as Record<string, unknown>)?.user) {
-      setUser((result as { user: User }).user);
-    } else {
-      await refreshProfile();
+    const responseUser = (result as { user?: User }).user;
+    if (responseUser?.role !== undefined) {
+      setUser(responseUser);
+    }
+    const authenticatedUser =
+      responseUser?.role !== undefined ? responseUser : await refreshProfile();
+    if (!authenticatedUser) {
+      throw new Error("Could not load the authenticated user profile");
     }
     connectSocket();
+    return authenticatedUser;
   }, [refreshProfile]);
 
   const signup = useCallback(async (payload: SignupPayload) => {
