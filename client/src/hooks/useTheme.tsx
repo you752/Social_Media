@@ -6,10 +6,15 @@ const THEME_STORAGE_KEY = "wave-theme";
 const LEGACY_THEME_STORAGE_KEY = "nexa-theme";
 
 function getStoredTheme(): Theme {
-  const storedTheme =
-    localStorage.getItem(THEME_STORAGE_KEY) ??
-    localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
-  return storedTheme === "dark" ? "dark" : "light";
+  try {
+    const storedTheme =
+      localStorage.getItem(THEME_STORAGE_KEY) ??
+      localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+    if (storedTheme === "dark" || storedTheme === "light") return storedTheme;
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export function useTheme() {
@@ -29,7 +34,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Keep the current session usable when storage is unavailable.
+    }
   }, [theme]);
 
   function toggleTheme() {

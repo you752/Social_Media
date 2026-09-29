@@ -118,12 +118,12 @@ export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
         <Avatar user={author} size="md" />
         <div className="post-header-meta">
           <strong>{displayName(author)}</strong>
-          {taggedUsers && <span className="tagged-users" style={{ fontSize: '0.85em', color: 'gray' }}> with {taggedUsers}</span>}
+          {taggedUsers && <span className="tagged-users"> with {taggedUsers}</span>}
           <div className="post-time">{timeAgo(post.createdAt)}</div>
         </div>
 
         <div className="post-menu">
-          <button className="icon-btn" onClick={() => handleBookmark()} aria-label="Bookmark" style={{ marginRight: '8px' }}>
+          <button className={`icon-btn${bookmarked ? " icon-btn-active" : ""}`} onClick={() => handleBookmark()} aria-label="Bookmark">
             <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
           </button>
           
@@ -145,24 +145,24 @@ export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
 
       {post.image && (
         <div className="post-image">
-          <img src={post.image} alt="Post attachment" />
+          <img src={post.image} alt="Post attachment" loading="lazy" />
         </div>
       )}
 
       <p className="post-content">{post.content}</p>
 
-      <div className="post-footer" style={{ display: 'flex', gap: '16px', borderTop: '1px solid #eee', paddingTop: '12px' }}>
-        <button className="post-action" onClick={handleLike} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: liked ? '#e0245e' : 'inherit' }}>
+      <div className="post-footer">
+        <button className={`post-action${liked ? " post-action-active" : ""}`} onClick={handleLike}>
           <Heart size={16} fill={liked ? "currentColor" : "none"} />
           <span>{likesCount}</span>
         </button>
         
-        <button className="post-action" onClick={() => setShowComments((v) => !v)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button className={`post-action${showComments ? " post-action-active" : ""}`} onClick={() => setShowComments((v) => !v)}>
           <MessageSquare size={16} />
           <span>{commentCount}</span>
         </button>
         
-        <button className="post-action" onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button className="post-action" onClick={handleShare}>
           <Share2 size={16} />
           <span>{sharesCount}</span>
         </button>

@@ -7,14 +7,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script>
       (function () {
-        var theme = localStorage.getItem("wave-theme") || localStorage.getItem("nexa-theme");
-        if (theme === "dark") {
-          document.documentElement.dataset.theme = "dark";
-          document.documentElement.style.colorScheme = "dark";
-        } else {
-          document.documentElement.dataset.theme = "light";
-          document.documentElement.style.colorScheme = "light";
+        var theme;
+        try {
+          theme = localStorage.getItem("wave-theme") || localStorage.getItem("nexa-theme");
+        } catch (error) {
+          theme = null;
         }
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">

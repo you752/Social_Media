@@ -116,10 +116,10 @@ export function SignupPage() {
           Continue with Google
         </Button>
 
-        <div style={{ display: "flex", alignItems: "center", color: "#888", marginBottom: "20px" }}>
-          <div style={{ flex: 1, height: "1px", background: "#334155" }}></div>
+        <div style={{ display: "flex", alignItems: "center", color: "var(--text-muted)", marginBottom: "20px" }}>
+          <div style={{ flex: 1, height: "1px", background: "var(--border-subtle)" }}></div>
           <span style={{ padding: "0 10px", fontSize: "14px" }}>OR</span>
-          <div style={{ flex: 1, height: "1px", background: "#334155" }}></div>
+          <div style={{ flex: 1, height: "1px", background: "var(--border-subtle)" }}></div>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
