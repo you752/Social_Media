@@ -1,4 +1,4 @@
-# Nexa — Full-Stack Social Media Platform
+# Wave — Full-Stack Social Media Platform
 
 <p align="center">
   A modern full-stack social media platform built with React, Node.js, TypeScript, MongoDB, Redis, and Socket.IO.
@@ -14,7 +14,7 @@
 
 ## Overview
 
-**Nexa** is a full-stack social media platform designed to provide users with a complete social networking experience.
+**Wave** is a full-stack social media platform designed to provide users with a complete social networking experience.
 
 The application combines a RESTful backend with real-time communication to support authentication, user profiles, posts, comments, friendships, notifications, and private messaging.
 
@@ -104,7 +104,7 @@ https://github.com/you752/Social_Media
 
 ## 💬 Real-Time Messaging
 
-Nexa uses **Socket.IO** to provide real-time communication between users.
+Wave uses **Socket.IO** to provide real-time communication between users.
 
 Features include:
 
@@ -251,7 +251,7 @@ Social_Media/
 
 # 🔐 Authentication Architecture
 
-Nexa uses a JWT-based authentication system with separate access and refresh tokens.
+Wave uses a JWT-based authentication system with separate access and refresh tokens.
 
 ```text
                  ┌──────────────┐

@@ -82,19 +82,19 @@ class AuthService {
 
     await sendEmail({
       to: normalizedEmail,
-      subject: "Verify your Nexa account",
-      text: `${name ? `Hello ${name},\n\n` : ""}Your Nexa verification code is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you didn't request this code, you can safely ignore this email.`,
+      subject: "Verify your Wave account",
+      text: `${name ? `Hello ${name},\n\n` : ""}Your Wave verification code is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you didn't request this code, you can safely ignore this email.`,
       html: `
         <div style="margin:0; padding:40px 20px; background:#0f172a; font-family:Arial, Helvetica, sans-serif;">
           <div style="max-width:520px; margin:0 auto;">
             <div style="text-align:center; margin-bottom:20px;">
-              <h1 style="margin:0; color:#6366f1; font-size:32px; font-weight:800;">Nexa</h1>
-              <p style="margin:8px 0 0; color:#94a3b8; font-size:14px;">Connect. Share. Stay Nexa.</p>
+              <h1 style="margin:0; color:#6366f1; font-size:32px; font-weight:800;">Wave</h1>
+              <p style="margin:8px 0 0; color:#94a3b8; font-size:14px;">Connect. Share. Stay Wave.</p>
             </div>
 
             <div style="background:#1e293b; border:1px solid #334155; border-radius:20px; padding:40px 35px; box-shadow:0 20px 50px rgba(0,0,0,0.35);">
               ${name ? `<h2 style="margin:0 0 12px; color:#f8fafc; font-size:24px;">Hello ${name} 👋</h2>` : `<h2 style="margin:0 0 12px; color:#f8fafc; font-size:24px;">Verify your account</h2>`}
-              <p style="margin:0 0 28px; color:#94a3b8; font-size:15px; line-height:1.7;">Use the verification code below to verify your Nexa account.</p>
+              <p style="margin:0 0 28px; color:#94a3b8; font-size:15px; line-height:1.7;">Use the verification code below to verify your Wave account.</p>
 
               <div style="background:#0f172a; border:1px solid #4f46e5; border-radius:14px; padding:22px 15px; text-align:center; margin:0 0 25px;">
                 <div style="color:#a5b4fc; font-size:12px; text-transform:uppercase; letter-spacing:3px; margin-bottom:10px;">Verification Code</div>
@@ -108,7 +108,7 @@ class AuthService {
               <p style="margin:0; color:#64748b; font-size:12px; line-height:1.6; text-align:center;">If you didn't request this code, you can safely ignore this email.</p>
             </div>
 
-            <p style="margin:20px 0 0; text-align:center; color:#475569; font-size:12px;">© Nexa. All rights reserved.</p>
+            <p style="margin:20px 0 0; text-align:center; color:#475569; font-size:12px;">© Wave. All rights reserved.</p>
           </div>
         </div>
       `,
@@ -134,16 +134,16 @@ class AuthService {
 
     await sendEmail({
       to: normalizedEmail,
-      subject: "Reset your Nexa password",
-      text: `Your Nexa password reset OTP is: ${otp}\n\nThis OTP will expire in 15 minutes.\n\nIf you did not request a password reset, you can safely ignore this email.`,
+      subject: "Reset your Wave password",
+      text: `Your Wave password reset OTP is: ${otp}\n\nThis OTP will expire in 15 minutes.\n\nIf you did not request a password reset, you can safely ignore this email.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 560px; margin: auto; padding: 32px 28px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff; color: #0f172a;">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-            <div style="width: 28px; height: 28px; border-radius: 8px; background: #2563eb; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 14px; font-weight: 700;">N</div>
-            <span style="font-size: 20px; font-weight: 800; color: #2563eb; letter-spacing: -0.4px;">Nexa</span>
+            <div style="width: 28px; height: 28px; border-radius: 8px; background: #2563eb; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 14px; font-weight: 700;">W</div>
+            <span style="font-size: 20px; font-weight: 800; color: #2563eb; letter-spacing: -0.4px;">Wave</span>
           </div>
           <h2 style="margin: 0 0 12px; color: #0f172a;">Reset your password</h2>
-          <p style="margin: 0 0 18px; color: #475569;">Your Nexa password reset OTP is:</p>
+          <p style="margin: 0 0 18px; color: #475569;">Your Wave password reset OTP is:</p>
           <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; text-align: center; margin: 20px 0 24px; color: #2563eb;">${otp}</div>
           <p style="margin: 0 0 10px; color: #475569;">This OTP will expire in <strong>15 minutes</strong>.</p>
           <p style="margin: 0; color: #64748b; font-size: 13px;">If you did not request a password reset, you can safely ignore this email.</p>

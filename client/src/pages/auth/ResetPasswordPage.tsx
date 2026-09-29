@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { WaveBrand } from "@/components/common/WaveBrand";
 import { getApiErrorMessage } from "@/api/axios";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
@@ -70,7 +70,7 @@ export function ResetPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <NexaBrand className="auth-brand" />
+        <WaveBrand className="auth-brand" />
         <h1>Set new password</h1>
         <p className="auth-subtitle">Create a strong password for your Wave account.</p>
 

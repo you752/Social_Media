@@ -2775,9 +2775,9 @@ button,
 }
 
 /* ==========================================================================
-   Nexa polish layer
+   Wave polish layer
    ========================================================================== */
-.nexa-brand {
+.wave-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -2786,19 +2786,19 @@ button,
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.nexa-brand:hover {
+.wave-brand:hover {
   transform: translateY(-1px) scale(1.015);
   opacity: 0.96;
 }
 
-.nexa-mark {
+.wave-mark {
   width: 36px;
   height: 36px;
   flex: 0 0 auto;
   filter: drop-shadow(0 10px 18px rgba(59, 130, 246, 0.28));
 }
 
-.nexa-brand-name {
+.wave-brand-name {
   font-size: 23px;
   font-weight: 800;
   letter-spacing: -0.7px;
@@ -3018,11 +3018,11 @@ button,
     gap: 10px;
   }
 
-  .nexa-brand-name {
+  .wave-brand-name {
     font-size: 20px;
   }
 
-  .nexa-mark {
+  .wave-mark {
     width: 32px;
     height: 32px;
   }
@@ -4056,12 +4056,12 @@ button,
   gap: 12px;
 }
 
-.auth-showcase-brand .nexa-mark {
+.auth-showcase-brand .wave-mark {
   width: 44px;
   height: 44px;
 }
 
-.auth-showcase-brand .nexa-brand-name {
+.auth-showcase-brand .wave-brand-name {
   font-size: 26px;
 }
 
@@ -4282,12 +4282,12 @@ button,
     padding: 28px;
   }
 
-  .auth-showcase-brand .nexa-mark {
+  .auth-showcase-brand .wave-mark {
     width: 38px;
     height: 38px;
   }
 
-  .auth-showcase-brand .nexa-brand-name {
+  .auth-showcase-brand .wave-brand-name {
     font-size: 23px;
   }
 
@@ -4336,12 +4336,12 @@ button,
       #050816;
   }
 
-  .auth-showcase-brand .nexa-mark {
+  .auth-showcase-brand .wave-mark {
     width: 36px;
     height: 36px;
   }
 
-  .auth-showcase-brand .nexa-brand-name {
+  .auth-showcase-brand .wave-brand-name {
     font-size: 22px;
   }
 
@@ -4852,12 +4852,12 @@ select {
     gap: 6px;
   }
 
-  .navbar-brand .nexa-mark {
+  .navbar-brand .wave-mark {
     width: 30px;
     height: 30px;
   }
 
-  .navbar-brand .nexa-brand-name {
+  .navbar-brand .wave-brand-name {
     font-size: 17px;
   }
 
@@ -5065,12 +5065,12 @@ select {
     padding-left: 8px;
   }
 
-  .navbar-brand .nexa-mark {
+  .navbar-brand .wave-mark {
     width: 28px;
     height: 28px;
   }
 
-  .navbar-brand .nexa-brand-name {
+  .navbar-brand .wave-brand-name {
     font-size: 16px;
   }
 
@@ -5187,7 +5187,7 @@ select {
 }
 
 @media (max-width: 360px) {
-  .navbar-brand .nexa-brand-name {
+  .navbar-brand .wave-brand-name {
     display: none;
   }
 

@@ -63,7 +63,7 @@ router.put(
     }
 
     const uploadedImage = req.file
-      ? await uploadImage(req.file.buffer, "nexa/profile-images")
+      ? await uploadImage(req.file.buffer, "wave/profile-images")
       : undefined;
     const user = await UserService.updateData(
       req.user.id,

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Avatar } from "@/components/common/Avatar";
 import { displayName } from "@/utils/getUser";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { WaveBrand } from "@/components/common/WaveBrand";
 
 const links = [
   { to: "/", label: "Home", icon: Home, end: true },
@@ -25,7 +25,7 @@ export function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <NexaBrand className="sidebar-brand" />
+      <WaveBrand className="sidebar-brand" />
 
       <nav className="sidebar-nav">
         {links.map(({ to, label, icon: Icon, end, badgeKey }) => {

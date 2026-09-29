@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { WaveBrand } from "@/components/common/WaveBrand";
 import { getApiErrorMessage } from "@/api/axios";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
@@ -40,7 +40,7 @@ export function ForgotPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-card otp-card">
-        <NexaBrand className="auth-brand" />
+        <WaveBrand className="auth-brand" />
 
         {success ? (
           <div className="otp-success-state" aria-live="polite">

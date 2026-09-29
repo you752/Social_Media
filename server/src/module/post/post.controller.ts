@@ -37,7 +37,7 @@ router.post(
     }
 
     const uploadedImage = req.file
-      ? await uploadImage(req.file.buffer, "nexa/post-images")
+      ? await uploadImage(req.file.buffer, "wave/post-images")
       : undefined;
     const post = await new PostService().createPost(
       req.body,
@@ -94,7 +94,7 @@ router.patch(
     }
 
     const uploadedImage = req.file
-      ? await uploadImage(req.file.buffer, "nexa/post-images")
+      ? await uploadImage(req.file.buffer, "wave/post-images")
       : undefined;
     const post = await new PostService().updatePost(
       postId,

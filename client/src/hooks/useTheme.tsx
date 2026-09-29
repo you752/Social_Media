@@ -2,10 +2,14 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type Theme = "light" | "dark";
 
-const THEME_STORAGE_KEY = "nexa-theme";
+const THEME_STORAGE_KEY = "wave-theme";
+const LEGACY_THEME_STORAGE_KEY = "nexa-theme";
 
 function getStoredTheme(): Theme {
-  return localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
+  const storedTheme =
+    localStorage.getItem(THEME_STORAGE_KEY) ??
+    localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+  return storedTheme === "dark" ? "dark" : "light";
 }
 
 export function useTheme() {

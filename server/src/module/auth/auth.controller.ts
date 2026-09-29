@@ -66,7 +66,7 @@ authRouter.post(
   validate(signupSchema),
   catchAsync(async (req: Request, res: Response) => {
     const uploadedImage = req.file
-      ? await uploadImage(req.file.buffer, "nexa/profile-images")
+      ? await uploadImage(req.file.buffer, "wave/profile-images")
       : undefined;
     let data = await authService.signUp(req.body, uploadedImage?.secure_url);
     SuccessResponse({

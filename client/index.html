@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script>
       (function () {
-        var theme = localStorage.getItem("nexa-theme");
+        var theme = localStorage.getItem("wave-theme") || localStorage.getItem("nexa-theme");
         if (theme === "dark") {
           document.documentElement.dataset.theme = "dark";
           document.documentElement.style.colorScheme = "dark";

@@ -3,7 +3,7 @@ import { Search, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useNotifications } from "@/hooks/useNotifications";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { WaveBrand } from "@/components/common/WaveBrand";
 
 export function Navbar() {
   const [query, setQuery] = useState("");
@@ -19,7 +19,7 @@ export function Navbar() {
 
   return (
     <header className="navbar">
-      <NexaBrand className="navbar-brand" />
+      <WaveBrand className="navbar-brand" />
 
       <form className="navbar-search" onSubmit={handleSearch}>
         <Search size={16} />

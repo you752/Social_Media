@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { getApiErrorMessage } from "@/api/axios";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { WaveBrand } from "@/components/common/WaveBrand";
 import { useToast } from "@/hooks/useToast";
 
 const RESEND_COOLDOWN_SECONDS = 45;
@@ -159,7 +159,7 @@ export function VerifyAccountPage() {
   return (
     <div className="auth-page">
       <div className="auth-card otp-card">
-        <NexaBrand className="auth-brand" />
+        <WaveBrand className="auth-brand" />
 
         {success ? (
           <div className="otp-success-state" aria-live="polite">

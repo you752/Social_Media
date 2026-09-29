@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { NexaBrand } from "@/components/common/NexaBrand";
+import { WaveBrand } from "@/components/common/WaveBrand";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -10,7 +10,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
     <main className="auth-page auth-split-page">
       <section className="auth-showcase" aria-label="Welcome to Wave">
         <div className="auth-showcase-content">
-          <NexaBrand className="auth-showcase-brand" />
+          <WaveBrand className="auth-showcase-brand" />
           <div className="auth-showcase-copy">
             <span className="auth-showcase-eyebrow">A little closer, every day</span>
             <h1>Find your people.<br />Feel more connected.</h1>
