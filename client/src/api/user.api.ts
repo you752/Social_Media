@@ -28,6 +28,13 @@ export async function updateProfile(payload: UpdateProfilePayload) {
   return unwrap<User>(res.data);
 }
 
+export async function updateCover(file: File) {
+  const formData = new FormData();
+  formData.append("cover", file);
+  const res = await api.patch("/api/users/me/cover", formData);
+  return unwrap<{ cover: string }>(res.data);
+}
+
 export async function getUsers(options: { discoverableOnly?: boolean } = {}) {
   const res = await api.get("/user/", {
     params: options.discoverableOnly ? { discoverable: true } : undefined,

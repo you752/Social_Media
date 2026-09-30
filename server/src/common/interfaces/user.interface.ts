@@ -13,6 +13,7 @@ export interface IUser {
   age: number;
   phoneNumber: string;
   profileImage?: string;
+  cover?: string;
   bio?: string;
   confirmEmail: boolean;
   isBlocked?: boolean;

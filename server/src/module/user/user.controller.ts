@@ -4,8 +4,48 @@ import { SuccessResponse } from "../../common/exception/success.responce";
 import { auth } from "../../common/middleware/auth/auth.js";
 import { upload } from "../../common/utils/multer/multer.js";
 import { uploadImage } from "../../common/service/cloudinary.service.js";
+import multer from "multer";
 
 const router = Router();
+
+const coverUpload = upload({
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, callback) => {
+    if (!file.mimetype.startsWith("image/")) {
+      callback(new Error("Cover must be an image file"));
+      return;
+    }
+    callback(null, true);
+  },
+}).single("cover");
+
+router.patch(
+  "/me/cover",
+  auth(),
+  (req: Request, res: Response, next) => {
+    coverUpload(req, res, (error) => {
+      if (!error) {
+        next();
+        return;
+      }
+      const message = error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE"
+        ? "Cover image must be 5MB or smaller"
+        : error instanceof Error
+          ? error.message
+          : "Could not upload cover image";
+      return res.status(400).json({ success: false, message });
+    });
+  },
+  async (req: Request, res: Response) => {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Cover image is required" });
+    }
+    const uploadedCover = await uploadImage(req.file.buffer, "wave/cover-images");
+    const result = await UserService.updateCover(req.user.id, uploadedCover.secure_url);
+    return SuccessResponse({ res, message: "Cover updated", data: result });
+  },
+);
 
 router.get("/settings", auth(), async (req: Request, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });

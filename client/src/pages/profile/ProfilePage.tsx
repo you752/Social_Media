@@ -24,7 +24,7 @@ import type { User, UserProfile } from "@/types/user";
 
 export function ProfilePage() {
   const { userId, username: routeUsername } = useParams();
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, setUser } = useAuth();
   const { showToast } = useToast();
   const isOwnProfile = !userId && !routeUsername;
   const [publicProfile, setPublicProfile] = useState<UserProfile | null>(null);
@@ -116,6 +116,9 @@ export function ProfilePage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onEdit={isOwnProfile ? () => setEditOpen(true) : undefined}
+        onCoverChange={isOwnProfile ? (cover) => {
+          setUser({ ...profileUser, cover });
+        } : undefined}
       />
       <div className="profile-content-grid">
         <IntroCard user={profileUser} />

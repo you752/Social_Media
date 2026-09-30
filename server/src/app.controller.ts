@@ -43,6 +43,7 @@ const bootstrap = async () => {
 
   app.use("/auth", authRouter);
   app.use("/user", userRouter);
+  app.use("/api/users", userRouter);
   app.use("/friend", friendRouter);
   app.use("/comment", commentRouter);
   app.use("/post", postRouter);

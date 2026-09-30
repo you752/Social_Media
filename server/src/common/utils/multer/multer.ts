@@ -1,7 +1,7 @@
-import multer from "multer";
+import multer, { type Options } from "multer";
 
-export const upload = () => {
-  return multer({ storage: multer.memoryStorage() });
+export const upload = (options: Options = {}) => {
+  return multer({ ...options, storage: multer.memoryStorage() });
 };
 
 export const publicImageUrl = (image?: string) => {

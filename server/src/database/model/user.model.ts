@@ -52,6 +52,10 @@ const userSchema = new mongoose.Schema<IUser>(
     profileImage: {
       type: String,
     },
+    cover: {
+      type: String,
+      default: "",
+    },
     bio: {
       type: String,
       maxlength: 500,

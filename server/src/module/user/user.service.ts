@@ -59,6 +59,7 @@ class UserService {
         ? await decryptPhoneNumber(obj.phoneNumber)
         : obj.phoneNumber,
       profileImage: publicImageUrl(obj.profileImage),
+      cover: obj.cover ?? "",
     };
   }
 
@@ -85,6 +86,7 @@ class UserService {
       firstName: obj.firstName,
       lastName: obj.lastName,
       profileImage: publicImageUrl(obj.profileImage),
+      cover: obj.cover ?? "",
       bio: obj.bio,
       createdAt: obj.createdAt,
       friendsCount,
@@ -114,6 +116,15 @@ class UserService {
   async getSuggestions(userId: string, limit: number) {
     const users = await this.getUsers(userId, true);
     return users.slice(0, limit);
+  }
+
+  async updateCover(user_id: string, cover: string) {
+    const user = await this.userRepository.findByIdAndUpdate({
+      id: user_id,
+      data: { cover },
+    });
+    if (!user) throw new NotFoundException("User not found");
+    return { cover: user.cover ?? "" };
   }
 
   async getSettings(user_id: string) {
