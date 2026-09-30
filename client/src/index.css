@@ -6009,11 +6009,34 @@ html {
   display: none;
 }
 
-.profile-cover-button {
+.profile-cover-overlay {
   position: absolute;
-  right: 16px;
-  bottom: 14px;
+  inset: 0;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.profile-cover-editable:hover .profile-cover-overlay,
+.profile-cover-editable:focus-within .profile-cover-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.profile-cover-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.profile-cover-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6040,10 +6063,6 @@ html {
 }
 
 .profile-cover-error {
-  position: absolute;
-  right: 16px;
-  bottom: 58px;
-  z-index: 1;
   max-width: calc(100% - 32px);
   margin: 0;
   padding: 6px 10px;
@@ -6051,6 +6070,14 @@ html {
   color: #fff;
   background: rgba(127, 29, 29, 0.9);
   font-size: 12px;
+  text-align: center;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .profile-cover-editable .profile-cover-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 @media (min-width: 640px) {
@@ -6059,7 +6086,7 @@ html {
     height: 224px;
   }
 
-  .profile-avatar-image {
+  .profile-avatar-edit-row > img {
     width: 128px;
     height: 128px;
     margin-top: -64px;
@@ -6077,18 +6104,18 @@ html {
   justify-content: space-between;
 }
 
-.profile-avatar-image {
+.profile-avatar-edit-row > img {
   position: relative;
   z-index: 10;
   width: 112px;
   height: 112px;
   margin-top: -56px;
-  border: 4px solid var(--surface);
   border-radius: 50%;
   object-fit: cover;
   display: block;
   flex-shrink: 0;
   background: var(--surface-2);
+  box-shadow: 0 0 0 4px var(--surface);
 }
 
 .profile-edit-button {

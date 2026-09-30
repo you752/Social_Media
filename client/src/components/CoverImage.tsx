@@ -48,10 +48,10 @@ export function CoverImage({ cover, editable = false, onCoverChange }: CoverImag
   }
 
   return (
-    <div className={`profile-cover${cover ? " profile-cover-has-image" : ""}`}>
+    <div className={`profile-cover${cover ? " profile-cover-has-image" : ""}${editable ? " profile-cover-editable group" : ""}`}>
       {cover && <img className="profile-cover-image" src={cover} alt="" />}
       {editable && (
-        <>
+        <div className="profile-cover-overlay">
           <input
             ref={inputRef}
             className="profile-cover-input"
@@ -60,17 +60,19 @@ export function CoverImage({ cover, editable = false, onCoverChange }: CoverImag
             onChange={handleFileChange}
             aria-label="Choose a cover image"
           />
-          <button
-            type="button"
-            className="profile-cover-button"
-            onClick={() => inputRef.current?.click()}
-            disabled={uploading}
-          >
-            <Camera size={16} />
-            {uploading ? "Uploading..." : cover ? "Change cover" : "Add cover"}
-          </button>
-          {error && <p className="profile-cover-error" role="alert">{error}</p>}
-        </>
+          <div className="profile-cover-controls">
+            <button
+              type="button"
+              className="profile-cover-button"
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+            >
+              <Camera size={16} />
+              {uploading ? "Uploading..." : cover ? "Change cover" : "Add cover"}
+            </button>
+            {error && <p className="profile-cover-error" role="alert">{error}</p>}
+          </div>
+        </div>
       )}
     </div>
   );

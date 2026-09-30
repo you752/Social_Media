@@ -48,7 +48,7 @@ export function ProfileHeader({
       <div className="profile-header-body">
         <div className="profile-avatar-edit-row">
           <img
-            className="profile-avatar-image rounded-full object-cover ring-4 ring-surface h-28 w-28 sm:h-32 sm:w-32 -mt-14 sm:-mt-16 relative z-10"
+            className="relative z-10 -mt-14 block h-28 w-28 rounded-full object-cover ring-4 ring-surface sm:-mt-16 sm:h-32 sm:w-32"
             src={user.profileImage || fallbackAvatar}
             alt={displayName(user)}
           />
