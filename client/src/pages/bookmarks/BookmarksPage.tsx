@@ -7,6 +7,7 @@ import * as postApi from "@/api/post.api";
 import { getApiErrorMessage } from "@/api/axios";
 import { useToast } from "@/hooks/useToast";
 import type { Post } from "@/types/post";
+import { FeedColumn } from "@/components/FeedColumn";
 
 export function BookmarksPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -22,17 +23,19 @@ export function BookmarksPage() {
 
   return (
     <div className="feed-page">
-      <h2 className="section-title">Bookmarks</h2>
-      {loading ? <PageSpinner /> : posts.length === 0 ? (
-        <EmptyState icon={<Bookmark size={28} />} title="No bookmarks yet" description="Posts you bookmark will show up here." />
-      ) : posts.map((post) => (
-        <PostCard
-          key={post._id}
-          post={post}
-          onDeleted={(id) => setPosts((previous) => previous.filter((item) => item._id !== id))}
-          onEdit={() => undefined}
-        />
-      ))}
+      <FeedColumn>
+        <h2 className="section-title">Bookmarks</h2>
+        {loading ? <PageSpinner /> : posts.length === 0 ? (
+          <EmptyState icon={<Bookmark size={28} />} title="No bookmarks yet" description="Posts you bookmark will show up here." />
+        ) : posts.map((post) => (
+          <PostCard
+            key={post._id}
+            post={post}
+            onDeleted={(id) => setPosts((previous) => previous.filter((item) => item._id !== id))}
+            onEdit={() => undefined}
+          />
+        ))}
+      </FeedColumn>
     </div>
   );
 }

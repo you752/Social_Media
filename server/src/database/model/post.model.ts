@@ -10,7 +10,8 @@ const postSchema = new Schema<IPost>(
     },
     content: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
       trim: true,
       maxlength: 5000,
     },

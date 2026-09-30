@@ -1,180 +1,246 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Pencil, Image as ImageIcon } from "lucide-react";
-import { Avatar } from "@/components/common/Avatar";
+import { FileText, Info } from "lucide-react";
 import { Button } from "@/components/common/Button";
-import { Modal } from "@/components/common/Modal";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ImagePicker } from "@/components/common/ImagePicker";
 import { Input } from "@/components/common/Input";
-import { PageSpinner } from "@/components/common/Spinner";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
-import * as userApi from "@/api/user.api";
-import * as postApi from "@/api/post.api";
-import { getApiErrorMessage } from "@/api/axios";
+import { Modal } from "@/components/common/Modal";
+import { PostSkeleton, Skeleton } from "@/components/common/Skeleton";
+import { CreatePostBox } from "@/components/CreatePostBox";
+import { FeedColumn } from "@/components/FeedColumn";
+import { IntroCard } from "@/components/IntroCard";
+import { ProfileHeader, type ProfileTab } from "@/components/ProfileHeader";
 import { PostCard } from "@/components/posts/PostCard";
 import { EditPostModal } from "@/components/posts/EditPostModal";
-import { EmptyState } from "@/components/common/EmptyState";
-import { FileText } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
+import * as friendApi from "@/api/friend.api";
+import * as postApi from "@/api/post.api";
+import * as userApi from "@/api/user.api";
+import { getApiErrorMessage } from "@/api/axios";
 import type { Post } from "@/types/post";
-import { ImagePicker } from "@/components/common/ImagePicker";
+import type { User, UserProfile } from "@/types/user";
 
 export function ProfilePage() {
-  const { userId } = useParams();
+  const { userId, username: routeUsername } = useParams();
   const { user, refreshProfile } = useAuth();
   const { showToast } = useToast();
-  const [editOpen, setEditOpen] = useState(false);
+  const isOwnProfile = !userId && !routeUsername;
+  const [publicProfile, setPublicProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [postsLoading, setPostsLoading] = useState(true);
+  const [bookmarks, setBookmarks] = useState<Post[]>([]);
+  const [friendsCount, setFriendsCount] = useState<number | null>(null);
+  const [postsError, setPostsError] = useState(false);
+  const [bookmarksError, setBookmarksError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
+  const [editOpen, setEditOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const [publicProfile, setPublicProfile] = useState<{
-    _id: string;
-    username?: string;
-    uniqueName?: string;
-    firstName?: string;
-    lastName?: string;
-    profileImage?: string;
-    followersCount: number;
-    followingCount: number;
-    posts: Post[];
-  } | null>(null);
 
   useEffect(() => {
-    if (userId) {
-      setPostsLoading(true);
-      userApi
-        .getUserProfile(userId)
+    let active = true;
+    setLoading(true);
+    if (isOwnProfile) {
+      if (!user) {
+        setLoading(false);
+        return () => { active = false; };
+      }
+      Promise.allSettled([
+        postApi.getMyPosts(),
+        postApi.getBookmarks(),
+        friendApi.getFriends(),
+      ]).then(([postsResult, bookmarksResult, friendsResult]) => {
+          if (!active) return;
+          if (postsResult.status === "fulfilled") {
+            setPosts(postsResult.value);
+            setPostsError(false);
+          } else {
+            setPostsError(true);
+            showToast(getApiErrorMessage(postsResult.reason, "Could not load your posts"), "error");
+          }
+          if (bookmarksResult.status === "fulfilled") {
+            setBookmarks(bookmarksResult.value);
+            setBookmarksError(false);
+          } else {
+            setBookmarksError(true);
+            showToast(getApiErrorMessage(bookmarksResult.reason, "Could not load bookmarks"), "error");
+          }
+          if (friendsResult.status === "fulfilled") setFriendsCount(friendsResult.value.length);
+          else showToast(getApiErrorMessage(friendsResult.reason, "Could not load friends"), "error");
+        })
+        .finally(() => { if (active) setLoading(false); });
+    } else {
+      const profileRequest = userId
+        ? userApi.getUserProfile(userId)
+        : userApi.getUserProfileByUsername(routeUsername || "");
+      profileRequest
         .then((profile) => {
+          if (!active) return;
           setPublicProfile(profile);
           setPosts(Array.isArray(profile.posts) ? profile.posts : []);
+          setFriendsCount(profile.friendsCount ?? 0);
+          setPostsError(false);
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
+          if (!active) return;
           setPublicProfile(null);
           showToast(getApiErrorMessage(error, "Could not load profile"), "error");
         })
-        .finally(() => setPostsLoading(false));
-      return;
+        .finally(() => { if (active) setLoading(false); });
     }
+    return () => { active = false; };
+  }, [isOwnProfile, routeUsername, showToast, user, userId]);
 
-    setPublicProfile(null);
-    setPostsLoading(true);
-    postApi
-      .getMyPosts()
-      .then((data) => setPosts(Array.isArray(data) ? data : []))
-      .catch(() => setPosts([]))
-      .finally(() => setPostsLoading(false));
-  }, [userId, showToast]);
+  const profileUser = (isOwnProfile ? user : publicProfile) as User | null;
+  const displayedPosts = useMemo(
+    () => activeTab === "bookmarks" ? bookmarks : posts,
+    [activeTab, bookmarks, posts],
+  );
 
-  if (userId) {
-    if (postsLoading) return <PageSpinner />;
-    if (!publicProfile) {
-      return <EmptyState icon={<FileText size={28} />} title="Profile unavailable" description="This profile could not be loaded." />;
-    }
-    const name = [publicProfile.firstName, publicProfile.lastName].filter(Boolean).join(" ") || publicProfile.username;
-    return (
-      <div className="profile-page">
-        <div className="card profile-header">
-          <Avatar user={publicProfile} size="xl" />
-          <div className="profile-header-info">
-            <h2>{name}</h2>
-            {publicProfile.uniqueName && <span className="profile-username">@{publicProfile.uniqueName}</span>}
-            <div className="profile-details">
-              <span>{publicProfile.followersCount} followers</span>
-              <span>{publicProfile.followingCount} following</span>
-              <span>{posts.length} posts</span>
-            </div>
-          </div>
-        </div>
-        <h3 className="section-title">{name}'s posts</h3>
-        {postsLoading ? (
-          <PageSpinner />
-        ) : posts.length === 0 ? (
-          <EmptyState icon={<FileText size={28} />} title="No posts yet" description="This person has not shared any posts." />
-        ) : (
-          posts.map((post) => <PostCard key={post._id} post={post} />)
-        )}
-      </div>
-    );
+  if (loading) return <ProfileSkeleton />;
+  if (!profileUser) {
+    return <EmptyState icon={<FileText size={25} />} title="Profile unavailable" description="This profile could not be loaded." />;
   }
 
-  if (!user) return <PageSpinner />;
+  const fullName = [profileUser.firstName, profileUser.lastName].filter(Boolean).join(" ") || profileUser.username || "Wave user";
+  const totalBookmarks = isOwnProfile ? bookmarksError ? null : bookmarks.length : null;
 
   return (
     <div className="profile-page">
-      <div className="card profile-header">
-        <Avatar user={user} size="xl" />
-        <div className="profile-header-info">
-          <h2>{[user.firstName, user.lastName].filter(Boolean).join(" ") || user.username}</h2>
-          {user.uniqueName && <span className="profile-username">@{user.uniqueName}</span>}
-          <div className="profile-details">
-            {user.email && <span>{user.email}</span>}
-            {user.phoneNumber && <span>{user.phoneNumber}</span>}
-            {user.age !== undefined && <span>{user.age} years old</span>}
-            {user.gender && <span className="capitalize">{user.gender}</span>}
-          </div>
-        </div>
-        <Button variant="secondary" onClick={() => setEditOpen(true)}>
-          <Pencil size={16} /> Edit profile
-        </Button>
-      </div>
-
-      <h3 className="section-title">My posts</h3>
-      {postsLoading ? (
-        <PageSpinner />
-      ) : posts.length === 0 ? (
-        <EmptyState icon={<FileText size={28} />} title="No posts yet" description="Anything you post will show up here." />
-      ) : (
-        posts.map((post) => (
-          <PostCard
-            key={post._id}
-            post={post}
-            onDeleted={(id) => setPosts((prev) => prev.filter((p) => p._id !== id))}
-            onEdit={setEditingPost}
-          />
-        ))
-      )}
-
-      <EditProfileModal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        onSaved={async () => {
-          await refreshProfile();
-          showToast("Profile updated", "success");
-        }}
+      <ProfileHeader
+        user={profileUser}
+        friendsCount={friendsCount}
+        postsCount={postsError ? null : posts.length}
+        bookmarksCount={totalBookmarks}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onEdit={isOwnProfile ? () => setEditOpen(true) : undefined}
       />
+      <div className="profile-content-grid">
+        <IntroCard user={profileUser} />
+        <FeedColumn>
+          {activeTab === "posts" && isOwnProfile && (
+            <CreatePostBox
+              user={profileUser}
+              onCreated={(post) => {
+                setPostsError(false);
+                setPosts((current) => [post, ...current]);
+              }}
+            />
+          )}
+          {activeTab === "about" ? (
+            profileUser.bio ? (
+              <section className="profile-bio-card card">
+                <h2><Info size={18} /> About</h2>
+                <p>{profileUser.bio}</p>
+              </section>
+            ) : <IntroCard user={profileUser} />
+          ) : !isOwnProfile && activeTab === "bookmarks" ? (
+            <EmptyState icon={<Info size={25} />} title="Bookmarks are private" description="Only this person can see their bookmarks." />
+          ) : loading ? (
+            <><PostSkeleton /><PostSkeleton /></>
+          ) : (activeTab === "posts" && postsError) || (activeTab === "bookmarks" && bookmarksError) ? (
+            <EmptyState
+              icon={<Info size={25} />}
+              title={`Could not load ${activeTab}`}
+              description="Please refresh the page and try again."
+            />
+          ) : displayedPosts.length === 0 ? (
+            <EmptyState
+              icon={<FileText size={25} />}
+              title={activeTab === "bookmarks" ? "No bookmarks yet" : "No posts yet"}
+              description={activeTab === "bookmarks"
+                ? "Posts you bookmark will show up here."
+                : `When ${fullName} shares something, it will show up right here.`}
+            />
+          ) : (
+            displayedPosts.map((post) => (
+              <PostCard
+                key={post._id}
+                post={post}
+                onDeleted={(id) => setPosts((current) => current.filter((item) => item._id !== id))}
+                onEdit={isOwnProfile ? setEditingPost : undefined}
+              />
+            ))
+          )}
+        </FeedColumn>
+      </div>
+      {isOwnProfile && (
+        <EditProfileModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSaved={async () => {
+            await refreshProfile();
+            showToast("Profile updated", "success");
+          }}
+        />
+      )}
       <EditPostModal
         post={editingPost}
         onClose={() => setEditingPost(null)}
-        onUpdated={(updated) => setPosts((prev) => prev.map((p) => (p._id === updated._id ? updated : p)))}
+        onUpdated={(updated) => setPosts((current) => current.map((post) => post._id === updated._id ? updated : post))}
       />
     </div>
   );
 }
 
-function EditProfileModal({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
+function ProfileSkeleton() {
+  return (
+    <div className="profile-page" aria-label="Loading profile" aria-busy="true">
+      <section className="profile-loading-card card">
+        <Skeleton className="profile-loading-cover" />
+        <div className="profile-loading-copy">
+          <Skeleton className="skeleton-avatar" />
+          <Skeleton className="skeleton-line" />
+          <Skeleton className="skeleton-line" />
+        </div>
+      </section>
+      <div className="profile-content-grid">
+        <Skeleton className="profile-loading-intro" />
+        <FeedColumn><PostSkeleton /><PostSkeleton /></FeedColumn>
+      </div>
+    </div>
+  );
+}
+
+function EditProfileModal({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void | Promise<void> }) {
   const { user } = useAuth();
   const [username, setUsername] = useState(user?.username ?? "");
   const [age, setAge] = useState(user?.age?.toString() ?? "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ?? "");
   const [gender, setGender] = useState(user?.gender ?? "");
+  const [bio, setBio] = useState(user?.bio ?? "");
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(user?.profileImage ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!open) return;
+    setUsername(user?.username ?? "");
+    setAge(user?.age?.toString() ?? "");
+    setPhoneNumber(user?.phoneNumber ?? "");
+    setGender(user?.gender ?? "");
+    setBio(user?.bio ?? "");
+    setPreview(user?.profileImage ?? null);
+    setProfileImage(null);
+  }, [open, user]);
+
   async function handleSave() {
     setSaving(true);
     setError("");
     try {
-      // Only send fields that actually changed.
       const payload: Parameters<typeof userApi.updateProfile>[0] = {};
       if (username !== user?.username) payload.username = username;
       if (age !== (user?.age?.toString() ?? "")) payload.age = age;
       if (phoneNumber !== user?.phoneNumber) payload.phoneNumber = phoneNumber;
       if (gender !== user?.gender) payload.gender = gender;
+      if (bio !== (user?.bio ?? "")) payload.bio = bio;
       if (profileImage) payload.profileImage = profileImage;
 
       await userApi.updateProfile(payload);
-      onSaved();
+      await onSaved();
       onClose();
     } catch (err) {
       setError(getApiErrorMessage(err, "Could not update profile"));
@@ -199,22 +265,25 @@ function EditProfileModal({ open, onClose, onSaved }: { open: boolean; onClose: 
         setProfileImage(file);
         setPreview(imagePreview);
       }}>
-        {preview ? <img src={preview} alt="Profile preview" /> : <ImageIcon size={24} />}
+        {preview ? <img src={preview} alt="Profile preview" /> : <FileText size={24} />}
         <span>Change photo</span>
       </ImagePicker>
-
-      <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-      <Input label="Age" type="number" value={age} onChange={(e) => setAge(e.target.value)} />
-      <Input label="Phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+      <Input label="Name" value={username} onChange={(event) => setUsername(event.target.value)} />
+      <Input label="Age" type="number" value={age} onChange={(event) => setAge(event.target.value)} />
+      <Input label="Phone number" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} />
       <div className="field">
-        <label className="field-label">Gender</label>
-        <select className="field-input" value={gender} onChange={(e) => setGender(e.target.value)}>
+        <label className="field-label" htmlFor="profile-gender">Gender</label>
+        <select id="profile-gender" className="field-input" value={gender} onChange={(event) => setGender(event.target.value)}>
           <option value="">Select gender</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
         </select>
       </div>
-      {error && <p className="form-error">{error}</p>}
+      <div className="field">
+        <label className="field-label" htmlFor="profile-bio">Bio</label>
+        <textarea id="profile-bio" className="field-input field-textarea" value={bio} maxLength={500} onChange={(event) => setBio(event.target.value)} />
+      </div>
+      {error && <p className="form-error" role="alert">{error}</p>}
     </Modal>
   );
 }

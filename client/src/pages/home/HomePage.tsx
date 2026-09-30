@@ -12,6 +12,7 @@ import * as postApi from "@/api/post.api";
 import { getApiErrorMessage } from "@/api/axios";
 import { useToast } from "@/hooks/useToast";
 import type { Post } from "@/types/post";
+import { FeedColumn } from "@/components/FeedColumn";
 
 export function HomePage() {
   const { user } = useAuth();
@@ -34,36 +35,36 @@ export function HomePage() {
 
   return (
     <div className="feed-page">
-      <div className="card create-post-trigger" onClick={() => setCreateOpen(true)}>
-        <Avatar user={user} size="md" />
-        <span>What is on your mind, {user?.firstName || user?.username}?</span>
-        <Button size="sm" onClick={(e) => { e.stopPropagation(); setCreateOpen(true); }}>
-          <Plus size={16} /> Post
-        </Button>
-      </div>
-
-      {loading ? (
-        <>
-          <PostSkeleton />
-          <PostSkeleton />
-        </>
-      ) : posts.length === 0 ? (
-        <EmptyState
-          icon={<Newspaper size={28} />}
-          title="Your feed is empty"
-          description="Follow people or create your first post to get started."
-          action={<Button onClick={() => setCreateOpen(true)}>Create a post</Button>}
-        />
-      ) : (
-        posts.map((post) => (
-          <PostCard
-            key={post._id}
-            post={post}
-            onDeleted={(id) => setPosts((prev) => prev.filter((p) => p._id !== id))}
-            onEdit={setEditingPost}
+      <FeedColumn>
+        <div className="card create-post-trigger" onClick={() => setCreateOpen(true)}>
+          <Avatar user={user} size="md" />
+          <span>What is on your mind, {user?.firstName || user?.username}?</span>
+          <Button size="sm" onClick={(e) => { e.stopPropagation(); setCreateOpen(true); }}>
+            <Plus size={16} /> Post
+          </Button>
+        </div>
+        {loading ? (
+          <>
+            <PostSkeleton />
+            <PostSkeleton />
+          </>
+        ) : posts.length === 0 ? (
+          <EmptyState
+            icon={<Newspaper size={28} />}
+            title="Your feed is empty"
+            description="Follow people or create your first post to get started."
+            action={<Button onClick={() => setCreateOpen(true)}>Create a post</Button>}
           />
-        ))
-      )}
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              key={post._id}
+              post={post}
+              onDeleted={(id) => setPosts((prev) => prev.filter((p) => p._id !== id))}
+              onEdit={setEditingPost}
+            />
+          )))}
+      </FeedColumn>
 
       <CreatePostModal
         open={createOpen}

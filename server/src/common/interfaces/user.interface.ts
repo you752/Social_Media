@@ -13,6 +13,7 @@ export interface IUser {
   age: number;
   phoneNumber: string;
   profileImage?: string;
+  bio?: string;
   confirmEmail: boolean;
   isBlocked?: boolean;
   gender?: GenderEnum;
@@ -32,4 +33,7 @@ export interface IUserUpdateData {
   password?: string;
   newPassword?: string;
   uniqueName?: string;
+  bio?: string;
+  age?: number | string;
+  gender?: GenderEnum;
 }

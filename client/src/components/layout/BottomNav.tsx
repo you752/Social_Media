@@ -1,10 +1,9 @@
 import { NavLink } from "react-router-dom";
-import { Home, Users, UsersRound, MessageCircle, User } from "lucide-react";
+import { Home, UsersRound, MessageCircle, User } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 
 const links = [
   { to: "/", label: "Home", icon: Home, end: true },
-  { to: "/users", label: "Discover", icon: Users },
   { to: "/friends", label: "Friends", icon: UsersRound },
   { to: "/chat", label: "Messages", icon: MessageCircle, badgeKey: "unreadMessageCount" as const },
   { to: "/profile", label: "Profile", icon: User },

@@ -4,7 +4,7 @@ export const createPostValidation = z.object({
   content: z
     .string()
     .trim()
-    .min(1, { message: "content is required" })
+    .min(0)
     .max(5000, { message: "content must not exceed 5000 characters" }),
 
   tags: z.array(z.string()).optional(),

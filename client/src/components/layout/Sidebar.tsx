@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Users, UserPlus, MessageCircle, User, LogOut, UsersRound, Bookmark, Settings } from "lucide-react";
+import { Home, UserPlus, MessageCircle, User, LogOut, UsersRound, Bookmark, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Avatar } from "@/components/common/Avatar";
@@ -8,7 +8,6 @@ import { WaveBrand } from "@/components/common/WaveBrand";
 
 const links = [
   { to: "/", label: "Home", icon: Home, end: true },
-  { to: "/users", label: "Discover", icon: Users },
   { to: "/friends", label: "Friends", icon: UsersRound },
   { to: "/friend-requests", label: "Requests", icon: UserPlus, badgeKey: "friendRequestCount" as const },
   { to: "/chat", label: "Messages", icon: MessageCircle, badgeKey: "unreadMessageCount" as const },
@@ -47,7 +46,7 @@ export function Sidebar() {
 
       <div className="sidebar-footer">
         <div className="sidebar-user">
-          <Avatar user={user} size="sm" />
+          <Avatar user={user} size="sm" online />
           <span className="sidebar-user-name">{displayName(user)}</span>
         </div>
         <button className="sidebar-link sidebar-logout" onClick={() => logout()}>

@@ -52,6 +52,10 @@ const userSchema = new mongoose.Schema<IUser>(
     profileImage: {
       type: String,
     },
+    bio: {
+      type: String,
+      maxlength: 500,
+    },
 
     confirmEmail: {
       type: Boolean,

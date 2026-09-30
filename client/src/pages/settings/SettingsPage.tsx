@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/common/Button";
-import { Input } from "@/components/common/Input";
 import { PageSpinner } from "@/components/common/Spinner";
+import { PasswordField } from "@/components/PasswordField";
 import { getApiErrorMessage } from "@/api/axios";
 import * as userApi from "@/api/user.api";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +21,6 @@ export function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [showPasswords, setShowPasswords] = useState([false, false, false]);
   const [passwordError, setPasswordError] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
   const { showToast } = useToast();
@@ -38,9 +37,6 @@ export function SettingsPage() {
       : []),
     ...(newPassword.length > 0 && newPassword === currentPassword
       ? ["New password must differ from your current password."]
-      : []),
-    ...(confirmNewPassword.length > 0 && newPassword !== confirmNewPassword
-      ? ["Passwords do not match."]
       : []),
   ];
   const passwordValid =
@@ -93,10 +89,6 @@ export function SettingsPage() {
     }
   }
 
-  function togglePasswordVisibility(index: number) {
-    setShowPasswords((current) => current.map((shown, item) => item === index ? !shown : shown));
-  }
-
   if (!settings && !error) return <PageSpinner />;
 
   return (
@@ -127,56 +119,34 @@ export function SettingsPage() {
           </div>
         </div>
         <form className="settings-password-form" onSubmit={submitPasswordChange}>
-          {[
-            {
-              label: "Current password",
-              value: currentPassword,
-              setValue: setCurrentPassword,
-              autoComplete: "current-password",
-            },
-            {
-              label: "New password",
-              value: newPassword,
-              setValue: setNewPassword,
-              autoComplete: "new-password",
-            },
-            {
-              label: "Confirm new password",
-              value: confirmNewPassword,
-              setValue: setConfirmNewPassword,
-              autoComplete: "new-password",
-            },
-          ].map((field, index) => (
-            <div className="settings-password-field" key={field.label}>
-              <Input
-                label={field.label}
-                type={showPasswords[index] ? "text" : "password"}
-                value={field.value}
-                onChange={(event) => {
-                  field.setValue(event.target.value);
-                  setPasswordError("");
-                }}
-                autoComplete={field.autoComplete}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle settings-password-toggle"
-                onClick={() => togglePasswordVisibility(index)}
-                aria-label={`${showPasswords[index] ? "Hide" : "Show"} ${field.label.toLowerCase()}`}
-                aria-pressed={showPasswords[index]}
-              >
-                {showPasswords[index] ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          ))}
+          <PasswordField
+            label="Current password"
+            value={currentPassword}
+            onChange={(value) => { setCurrentPassword(value); setPasswordError(""); }}
+            autoComplete="current-password"
+          />
+          <PasswordField
+            label="New password"
+            value={newPassword}
+            onChange={(value) => { setNewPassword(value); setPasswordError(""); }}
+            autoComplete="new-password"
+          />
+          <PasswordField
+            label="Confirm new password"
+            value={confirmNewPassword}
+            onChange={(value) => { setConfirmNewPassword(value); setPasswordError(""); }}
+            autoComplete="new-password"
+          />
           {passwordMessages.length > 0 && (
             <ul className="settings-password-validation" aria-live="polite">
               {passwordMessages.map((message) => <li key={message}>{message}</li>)}
             </ul>
           )}
           {passwordError && <p className="form-error" role="alert">{passwordError}</p>}
-          <Button type="submit" loading={changingPassword} disabled={!passwordValid || changingPassword}>
+          {confirmNewPassword.length > 0 && newPassword !== confirmNewPassword && (
+            <p className="password-match-error" role="alert">Passwords do not match.</p>
+          )}
+          <Button type="submit" fullWidth loading={changingPassword} disabled={!passwordValid || changingPassword}>
             {changingPassword ? "Changing password..." : "Change password"}
           </Button>
         </form>

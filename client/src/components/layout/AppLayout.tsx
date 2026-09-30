@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Navbar } from "./Navbar";
 import { BottomNav } from "./BottomNav";
+import { SuggestedPanel } from "@/components/SuggestedPanel";
 
 export function AppLayout() {
   return (
@@ -9,9 +10,12 @@ export function AppLayout() {
       <Sidebar />
       <div className="app-main">
         <Navbar />
-        <main className="app-content">
-          <Outlet />
-        </main>
+        <div className="app-content-layout">
+          <main className="app-content">
+            <Outlet />
+          </main>
+          <SuggestedPanel />
+        </div>
       </div>
       <BottomNav />
     </div>

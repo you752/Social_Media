@@ -29,6 +29,7 @@ export function Navbar() {
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search people"
         />
+        <kbd className="navbar-search-shortcut">⌘K</kbd>
       </form>
 
       <div className="navbar-actions">

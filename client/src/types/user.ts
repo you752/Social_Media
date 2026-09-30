@@ -13,6 +13,7 @@ export interface User {
   age?: number;
   phoneNumber?: string;
   gender?: string;
+  bio?: string;
   role?: number;
   isBlocked?: boolean;
   profileImage?: string;
@@ -22,6 +23,9 @@ export interface User {
   isOnline?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  friendsCount?: number;
+  postsCount?: number;
+  bookmarksCount?: number;
   [key: string]: unknown;
 }
 
@@ -51,5 +55,12 @@ export interface UpdateProfilePayload {
   age?: string | number;
   phoneNumber?: string;
   gender?: string;
+  bio?: string;
   profileImage?: File | null;
+}
+
+export interface UserProfile extends User {
+  posts: import("./post").Post[];
+  followersCount?: number;
+  followingCount?: number;
 }

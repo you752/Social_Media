@@ -25,6 +25,25 @@ router.get("/profile/:userId", auth(), async (req: Request, res: Response) => {
   return SuccessResponse({ res, message: "Profile retrieved", data: profile });
 });
 
+router.get("/profile/username/:username", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const profile = await UserService.getProfileByUsername(
+    req.params.username as string,
+    req.user.id,
+  );
+  return SuccessResponse({ res, message: "Profile retrieved", data: profile });
+});
+
+router.get("/suggestions", auth(), async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const requestedLimit = Number(req.query.limit);
+  const limit = Number.isFinite(requestedLimit)
+    ? Math.min(10, Math.max(1, Math.floor(requestedLimit)))
+    : 10;
+  const suggestions = await UserService.getSuggestions(req.user.id, limit);
+  return SuccessResponse({ res, message: "Suggestions retrieved", data: suggestions });
+});
+
 router.get("/", auth(), async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });

@@ -1,4 +1,3 @@
-import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 
 export function ThemeToggle() {
@@ -8,14 +7,16 @@ export function ThemeToggle() {
   return (
     <button
       className="side-theme-toggle"
+      role="switch"
+      aria-checked={darkMode}
       onClick={toggleTheme}
       aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
       title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
-      <span className="side-theme-toggle-icon" key={theme}>
-        {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+      <span className="side-theme-toggle-label">{darkMode ? "Dark" : "Light"}</span>
+      <span className={`theme-switch${darkMode ? " theme-switch-on" : ""}`} aria-hidden="true">
+        <span />
       </span>
-      <span className="side-theme-toggle-label">{darkMode ? "Light Mode" : "Dark Mode"}</span>
     </button>
   );
 }

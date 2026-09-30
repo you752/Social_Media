@@ -57,9 +57,11 @@ export function AppRoutes() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/u/:username" element={<ProfilePage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/discover" element={<UsersPage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/friend-requests" element={<FriendRequestsPage />} />
           <Route path="/chat" element={<ChatPage />} />
