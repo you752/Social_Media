@@ -13,7 +13,6 @@ import {
   encryptPhoneNumber,
 } from "../../common/middleware/security/phoneCrypto";
 import { IUserUpdateData } from "../../common";
-import { UserRoleEnum } from "../../common/enum/user.enum";
 import { UserRepository } from "./userRepo";
 import { publicImageUrl } from "../../common/utils/multer/multer";
 import { deleteImage } from "../../common/service/cloudinary.service";
@@ -44,6 +43,7 @@ class UserService {
   async getData(user_id: string) {
     const userData = await this.userRepository.findById({
       id: user_id,
+      includeAdmin: true,
     });
 
     if (!userData) {
@@ -65,7 +65,10 @@ class UserService {
   }
 
   async getProfile(user_id: string, currentUserId: string) {
-    const userData = await this.userRepository.findById({ id: user_id });
+    const userData = await this.userRepository.findById({
+      id: user_id,
+      includeAdmin: user_id === currentUserId,
+    });
     if (!userData) throw new NotFoundException("User not found");
 
     const friendRecords = await friendModel.find({
@@ -109,6 +112,7 @@ class UserService {
     const userData = await this.userRepository.findOne({
       filter: { $or: [{ unique_name: username }, { username }] },
       select: "_id",
+      includeAdmin: true,
     });
     if (!userData) throw new NotFoundException("User not found");
     return this.getProfile(String(userData._id), currentUserId);
@@ -128,6 +132,7 @@ class UserService {
     const user = await this.userRepository.findByIdAndUpdate({
       id: user_id,
       data: { cover },
+      includeAdmin: true,
     });
     if (!user) throw new NotFoundException("User not found");
     return { cover: user.cover ?? "" };
@@ -188,7 +193,6 @@ class UserService {
     const userFilter = discoverableOnly
       ? {
           _id: { $nin: excludedIds },
-          role: UserRoleEnum.USER,
           confirmEmail: true,
           isBlocked: { $ne: true },
         }
@@ -238,6 +242,7 @@ class UserService {
 
     const userData = await this.userRepository.findById({
       id: user_id,
+      includeAdmin: true,
     });
 
     if (!userData) {
@@ -262,6 +267,7 @@ class UserService {
           unique_name: targetUniqueName,
           _id: { $ne: user_id },
         },
+        includeAdmin: true,
       });
 
       if (uniqueNameExist) {
@@ -315,6 +321,7 @@ class UserService {
     const updatedUser = await this.userRepository.findByIdAndUpdate({
       id: user_id,
       data: updatedFields,
+      includeAdmin: true,
     });
 
     if (!updatedUser) {
@@ -342,11 +349,12 @@ class UserService {
   async deleteUser({ user_id }: { user_id: string }) {
     const userData = await this.userRepository.findById({
       id: user_id,
+      includeAdmin: true,
     });
     if (!userData) {
       throw new NotFoundException("User not found");
     }
-    const deletedUser = await this.userRepository.findByIdAndDelete(user_id);
+    const deletedUser = await this.userRepository.findByIdAndDelete(user_id, true);
 
     if (!deletedUser) {
       throw new NotFoundException("User not found");

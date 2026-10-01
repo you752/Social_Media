@@ -45,6 +45,7 @@ class AdminService {
       userModel.countDocuments({ confirmEmail: true }),
       userModel
         .find({}, userProjection)
+        .setOptions({ includeAdmin: true })
         .sort({ createdAt: -1 })
         .limit(5)
         .lean(),
@@ -97,6 +98,7 @@ class AdminService {
     const [users, total] = await Promise.all([
       userModel
         .find(filter, userProjection)
+        .setOptions({ includeAdmin: true })
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
@@ -108,14 +110,19 @@ class AdminService {
 
   async user(id: string) {
     ensureId(id);
-    const user = await userModel.findById(id, userProjection).lean();
+    const user = await userModel
+      .findById(id, userProjection)
+      .setOptions({ includeAdmin: true })
+      .lean();
     if (!user) throw new NotFoundException("User not found");
     return user;
   }
 
   async setBlocked(id: string, blocked: boolean) {
     ensureId(id);
-    const user = await userModel.findById(id);
+    const user = await userModel
+      .findById(id)
+      .setOptions({ includeAdmin: true });
     if (!user) throw new NotFoundException("User not found");
     if (user.role === UserRoleEnum.ADMIN)
       throw new ForbiddenException("Admin accounts require a protected action");
@@ -123,7 +130,11 @@ class AdminService {
       .findByIdAndUpdate(
         id,
         { isBlocked: blocked },
-        { returnDocument: "after", projection: userProjection },
+        {
+          returnDocument: "after",
+          projection: userProjection,
+          includeAdmin: true,
+        },
       )
       .lean();
   }
@@ -141,7 +152,11 @@ class AdminService {
       .findByIdAndUpdate(
         id,
         { role },
-        { returnDocument: "after", projection: userProjection },
+        {
+          returnDocument: "after",
+          projection: userProjection,
+          includeAdmin: true,
+        },
       )
       .lean();
     if (!user) throw new NotFoundException("User not found");
@@ -150,13 +165,17 @@ class AdminService {
 
   async deleteUser(id: string, confirmAdmin: boolean) {
     ensureId(id);
-    const user = await userModel.findById(id);
+    const user = await userModel
+      .findById(id)
+      .setOptions({ includeAdmin: true });
     if (!user) throw new NotFoundException("User not found");
     if (user.role === UserRoleEnum.ADMIN && !confirmAdmin)
       throw new ForbiddenException(
         "Explicit admin deletion confirmation is required",
       );
-    await userModel.findByIdAndDelete(id);
+    await userModel
+      .findByIdAndDelete(id)
+      .setOptions({ includeAdmin: true });
     return { id };
   }
 
@@ -187,6 +206,7 @@ class AdminService {
         },
         userProjection,
       )
+      .setOptions({ includeAdmin: true })
       .lean();
     const userMap = new Map(users.map((user) => [String(user._id), user]));
     return {
@@ -207,7 +227,10 @@ class AdminService {
     if (!post) throw new NotFoundException("Post not found");
     return {
       ...post,
-      user: await userModel.findById(post.userId, userProjection).lean(),
+      user: await userModel
+        .findById(post.userId, userProjection)
+        .setOptions({ includeAdmin: true })
+        .lean(),
     };
   }
 
@@ -254,6 +277,7 @@ class AdminService {
           },
           userProjection,
         )
+        .setOptions({ includeAdmin: true })
         .lean(),
       postModel
         .find(
@@ -289,7 +313,10 @@ class AdminService {
     if (!comment) throw new NotFoundException("Comment not found");
     return {
       ...comment,
-      user: await userModel.findById(comment.userId, userProjection).lean(),
+      user: await userModel
+        .findById(comment.userId, userProjection)
+        .setOptions({ includeAdmin: true })
+        .lean(),
       post: await postModel
         .findById(comment.postId, "content userId createdAt")
         .lean(),
