@@ -29,7 +29,6 @@ interface UserDirectoryRecord {
   lastName?: string;
   unique_name?: string;
   profileImage?: string;
-  email?: string;
   [key: string]: unknown;
 }
 
@@ -112,7 +111,6 @@ class UserService {
     const userData = await this.userRepository.findOne({
       filter: { $or: [{ unique_name: username }, { username }] },
       select: "_id",
-      includeAdmin: true,
     });
     if (!userData) throw new NotFoundException("User not found");
     return this.getProfile(String(userData._id), currentUserId);
@@ -200,9 +198,7 @@ class UserService {
 
     const users: UserDirectoryRecord[] = await this.userRepository.findAll({
       filter: userFilter,
-      select: discoverableOnly
-        ? "_id username firstName lastName unique_name profileImage"
-        : "_id username firstName lastName email unique_name profileImage",
+      select: "_id username firstName lastName unique_name profileImage",
       lean: true,
     });
 

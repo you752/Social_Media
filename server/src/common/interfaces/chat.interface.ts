@@ -8,4 +8,15 @@ export interface IChatMessage {
   readAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  sender?: IChatUser;
+  recipient?: IChatUser;
+}
+
+export interface IChatUser {
+  _id: Types.ObjectId | string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  unique_name?: string;
+  profileImage?: string;
 }

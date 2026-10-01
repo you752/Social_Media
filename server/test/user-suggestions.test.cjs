@@ -275,3 +275,139 @@ test("admin login and admin routes retain explicit access", async () => {
     adminServiceModule.default.dashboard = previousDashboard;
   }
 });
+
+test("post, comment, and chat APIs return public user avatars", async () => {
+  const authModule = require("../dist/common/middleware/auth/auth.js");
+  const { PostService } = require("../dist/module/post/post.service.js");
+  const { PostRepository } = require("../dist/module/post/postRepo.js");
+  const { CommentService } = require("../dist/module/comment/comment.service.js");
+  const { CommentRepository } = require("../dist/module/comment/commentRepo.js");
+  const { ChatService } = require("../dist/module/chat/chat.service.js");
+  const { ChatRepository } = require("../dist/module/chat/chatRepo.js");
+  const { UserRepository } = require("../dist/module/user/userRepo.js");
+  const { commentModel } = require("../dist/database/model/comment.model.js");
+  const { likeModel, commentLikeModel } =
+    require("../dist/database/model/like.model.js");
+  const { shareModel } = require("../dist/database/model/share.model.js");
+  const { bookmarkModel } = require("../dist/database/model/bookmark.model.js");
+  const { userModel } = require("../dist/database/model/user.model.js");
+  const ids = {
+    viewer: "aaaaaaaaaaaaaaaaaaaaaaaa",
+    author: "bbbbbbbbbbbbbbbbbbbbbbbb",
+    post: "cccccccccccccccccccccccc",
+    comment: "dddddddddddddddddddddddd",
+  };
+  const avatar = "https://res.cloudinary.com/wave/image/upload/profile.jpg";
+  const users = [
+    { _id: ids.viewer, username: "Viewer", profileImage: avatar },
+    { _id: ids.author, username: "Post Author", profileImage: avatar },
+  ];
+  const previous = {
+    auth: authModule.auth,
+    postFindAll: PostRepository.prototype.findAll,
+    commentFindAll: CommentRepository.prototype.findAll,
+    chatFindAll: ChatRepository.prototype.findAll,
+    userFindAll: UserRepository.prototype.findAll,
+    userFind: userModel.find,
+    commentAggregate: commentModel.aggregate,
+    likeAggregate: likeModel.aggregate,
+    commentLikeAggregate: commentLikeModel.aggregate,
+    shareAggregate: shareModel.aggregate,
+    likeFind: likeModel.find,
+    bookmarkFind: bookmarkModel.find,
+    commentLikeFind: commentLikeModel.find,
+  };
+  const emptyLean = () => ({ lean: async () => [] });
+
+  authModule.auth = () => (req, _res, next) => {
+    req.user = { id: ids.viewer };
+    next();
+  };
+  PostRepository.prototype.findAll = async () => [{
+    _id: ids.post,
+    userId: ids.author,
+    taggedUsers: [],
+    createdAt: new Date("2026-01-01T00:00:00.000Z"),
+    content: "Post",
+  }];
+  CommentRepository.prototype.findAll = async () => [{
+    _id: ids.comment,
+    userId: ids.author,
+    postId: ids.post,
+    content: "Comment",
+    createdAt: new Date("2026-01-02T00:00:00.000Z"),
+  }];
+  ChatRepository.prototype.findAll = async () => [{
+    _id: "eeeeeeeeeeeeeeeeeeeeeeee",
+    senderId: ids.author,
+    recipientId: ids.viewer,
+    content: "Message",
+    createdAt: new Date("2026-01-03T00:00:00.000Z"),
+  }];
+  UserRepository.prototype.findAll = async () => users;
+  userModel.find = () => ({
+    select() { return this; },
+    lean: async () => users,
+  });
+  commentModel.aggregate = async () => [];
+  likeModel.aggregate = async () => [];
+  commentLikeModel.aggregate = async () => [];
+  shareModel.aggregate = async () => [];
+  likeModel.find = emptyLean;
+  bookmarkModel.find = emptyLean;
+  commentLikeModel.find = emptyLean;
+
+  let server;
+  try {
+    const { default: postRouter } = require("../dist/module/post/post.controller.js");
+    const { default: commentRouter } = require("../dist/module/comment/comment.controller.js");
+    const { default: chatRouter } = require("../dist/module/chat/chat.controller.js");
+    const app = express();
+    app.use("/post", postRouter);
+    app.use("/comment", commentRouter);
+    app.use("/chat", chatRouter);
+    server = app.listen(0);
+    const baseUrl = `http://127.0.0.1:${server.address().port}`;
+
+    const [postsResponse, commentsResponse, chatResponse] = await Promise.all([
+      fetch(`${baseUrl}/post/`),
+      fetch(`${baseUrl}/comment/post/${ids.post}`),
+      fetch(`${baseUrl}/chat/${ids.author}`),
+    ]);
+    const [posts, comments, chat] = await Promise.all([
+      postsResponse.json(),
+      commentsResponse.json(),
+      chatResponse.json(),
+    ]);
+
+    assert.equal(postsResponse.status, 200);
+    assert.equal(commentsResponse.status, 200);
+    assert.equal(chatResponse.status, 200);
+    assert.equal(posts.data[0].author.profileImage, avatar);
+    assert.equal(comments.data[0].author.profileImage, avatar);
+    assert.equal(chat.data[0].sender.profileImage, avatar);
+    assert.equal(chat.data[0].recipient.profileImage, avatar);
+  } finally {
+    if (server) await closeServer(server);
+    authModule.auth = previous.auth;
+    PostRepository.prototype.findAll = previous.postFindAll;
+    CommentRepository.prototype.findAll = previous.commentFindAll;
+    ChatRepository.prototype.findAll = previous.chatFindAll;
+    UserRepository.prototype.findAll = previous.userFindAll;
+    userModel.find = previous.userFind;
+    commentModel.aggregate = previous.commentAggregate;
+    likeModel.aggregate = previous.likeAggregate;
+    commentLikeModel.aggregate = previous.commentLikeAggregate;
+    shareModel.aggregate = previous.shareAggregate;
+    likeModel.find = previous.likeFind;
+    bookmarkModel.find = previous.bookmarkFind;
+    commentLikeModel.find = previous.commentLikeFind;
+    for (const modulePath of [
+      "../dist/module/post/post.controller.js",
+      "../dist/module/comment/comment.controller.js",
+      "../dist/module/chat/chat.controller.js",
+    ]) {
+      delete require.cache[require.resolve(modulePath)];
+    }
+  }
+});

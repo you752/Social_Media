@@ -60,7 +60,7 @@ export function SuggestedPanel() {
           return (
             <div className="suggested-user" key={suggested._id}>
               <Link to={profilePath} className="suggested-identity">
-                <Avatar user={{ username: suggested.name, profileImage: suggested.avatar }} size="sm" />
+                <Avatar user={{ name: suggested.name, avatar: suggested.avatar }} size="sm" />
                 <span className="suggested-user-copy">
                   <strong>{suggested.name}</strong>
                   <small>@{suggested.username}</small>
