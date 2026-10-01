@@ -36,9 +36,6 @@ const bootstrap = async () => {
 
   await connectDB();
   await connectRS();
-
-  // app.all("/graphql", createHandler({ schema: schema, context: (req) => ({ req }) }));
-
   app.use(express.json());
 
   app.use("/auth", authRouter);

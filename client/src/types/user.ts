@@ -30,6 +30,13 @@ export interface User {
   [key: string]: unknown;
 }
 
+export interface UserSuggestion {
+  _id: string;
+  name: string;
+  username: string;
+  avatar: string;
+}
+
 export enum UserRoleEnum {
   USER = 0,
   ADMIN = 1,

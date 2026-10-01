@@ -7,11 +7,10 @@ import * as friendApi from "@/api/friend.api";
 import * as userApi from "@/api/user.api";
 import { getApiErrorMessage } from "@/api/axios";
 import { useToast } from "@/hooks/useToast";
-import { displayName } from "@/utils/getUser";
-import type { User } from "@/types/user";
+import type { UserSuggestion } from "@/types/user";
 
 export function SuggestedPanel() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [sendingIds, setSendingIds] = useState<string[]>([]);
@@ -57,14 +56,14 @@ export function SuggestedPanel() {
         )) : users.slice(0, 10).map((suggested) => {
           const sent = sentIds.includes(suggested._id);
           const sending = sendingIds.includes(suggested._id);
-          const profilePath = `/u/${encodeURIComponent(suggested.uniqueName || suggested.username || suggested._id)}`;
+          const profilePath = `/u/${encodeURIComponent(suggested.username || suggested._id)}`;
           return (
             <div className="suggested-user" key={suggested._id}>
               <Link to={profilePath} className="suggested-identity">
-                <Avatar user={suggested} size="sm" />
+                <Avatar user={{ username: suggested.name, profileImage: suggested.avatar }} size="sm" />
                 <span className="suggested-user-copy">
-                  <strong>{displayName(suggested)}</strong>
-                  <small>@{suggested.uniqueName || suggested.username}</small>
+                  <strong>{suggested.name}</strong>
+                  <small>@{suggested.username}</small>
                 </span>
               </Link>
               <Button

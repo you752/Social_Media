@@ -13,6 +13,7 @@ import {
   encryptPhoneNumber,
 } from "../../common/middleware/security/phoneCrypto";
 import { IUserUpdateData } from "../../common";
+import { UserRoleEnum } from "../../common/enum/user.enum";
 import { UserRepository } from "./userRepo";
 import { publicImageUrl } from "../../common/utils/multer/multer";
 import { deleteImage } from "../../common/service/cloudinary.service";
@@ -115,7 +116,12 @@ class UserService {
 
   async getSuggestions(userId: string, limit: number) {
     const users = await this.getUsers(userId, true);
-    return users.slice(0, limit);
+    return users.slice(0, limit).map((user) => ({
+      _id: String(user._id),
+      name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "",
+      username: user.unique_name ?? "",
+      avatar: user.profileImage ?? "",
+    }));
   }
 
   async updateCover(user_id: string, cover: string) {
@@ -179,7 +185,14 @@ class UserService {
 
     const excludedUserIds = [...friendshipStatuses.keys()];
     const excludedIds = discoverableOnly ? [...excludedUserIds, userId] : [userId];
-    const userFilter: { _id: { $nin: string[] } } = { _id: { $nin: excludedIds } };
+    const userFilter = discoverableOnly
+      ? {
+          _id: { $nin: excludedIds },
+          role: UserRoleEnum.USER,
+          confirmEmail: true,
+          isBlocked: { $ne: true },
+        }
+      : { _id: { $nin: excludedIds } };
 
     const users: UserDirectoryRecord[] = await this.userRepository.findAll({
       filter: userFilter,
