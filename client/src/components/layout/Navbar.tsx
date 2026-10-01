@@ -5,11 +5,13 @@ import { NotificationDropdown } from "@/components/notifications/NotificationDro
 import { useNotifications } from "@/hooks/useNotifications";
 import { WaveBrand } from "@/components/common/WaveBrand";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export function Navbar() {
   const [query, setQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const { unreadCount } = useNotifications();
+  const isSmallMobile = useMediaQuery("(max-width: 480px)");
   const location = useLocation();
   const navigate = useNavigate();
   const closeNotifications = useCallback(() => setNotifOpen(false), []);
@@ -33,7 +35,7 @@ export function Navbar() {
       <form className="navbar-search" onSubmit={handleSearch}>
         <Search size={16} />
         <input
-          placeholder="Search posts or people..."
+          placeholder={isSmallMobile ? "Search..." : "Search posts or people..."}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search people"

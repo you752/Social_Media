@@ -1,21 +1,23 @@
 import { NavLink } from "react-router-dom";
 import { Bell, Compass, Home, PlusSquare, User } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 const links = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/discover", label: "Discover", icon: Compass },
-  { to: "/", label: "Create Post", icon: PlusSquare, action: "create" },
-  { to: "/", label: "Notifications", icon: Bell, action: "notifications" },
+  { to: "/", label: "Create Post", compactLabel: "Post", icon: PlusSquare, action: "create" },
+  { to: "/", label: "Notifications", compactLabel: "Alerts", icon: Bell, action: "notifications" },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
 export function BottomNav() {
   const { unreadCount } = useNotifications();
+  const isExtraSmallMobile = useMediaQuery("(max-width: 400px)");
 
   return (
     <nav className="bottom-nav" aria-label="Mobile navigation">
-      {links.map(({ to, label, icon: Icon, end, action }) => (
+      {links.map(({ to, label, compactLabel, icon: Icon, end, action }) => (
         <NavLink
           key={label}
           to={to}
@@ -32,7 +34,7 @@ export function BottomNav() {
               <span className="badge badge-dot" aria-label={`${unreadCount} unread notifications`} />
             )}
           </span>
-          <span>{label}</span>
+          <span>{isExtraSmallMobile ? compactLabel ?? label : label}</span>
         </NavLink>
       ))}
     </nav>

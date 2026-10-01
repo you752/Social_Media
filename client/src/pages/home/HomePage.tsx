@@ -14,12 +14,14 @@ import { getApiErrorMessage } from "@/api/axios";
 import { useToast } from "@/hooks/useToast";
 import type { Post } from "@/types/post";
 import { FeedColumn } from "@/components/FeedColumn";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export function HomePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const isSmallMobile = useMediaQuery("(max-width: 480px)");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -48,7 +50,7 @@ export function HomePage() {
       <FeedColumn>
         <div className="card create-post-trigger" onClick={() => setCreateOpen(true)}>
           <Avatar user={user} size="md" />
-          <span>What is on your mind, {user?.firstName || user?.username}?</span>
+          <span>{isSmallMobile ? "What's on your mind?" : `What is on your mind, ${user?.firstName || user?.username}?`}</span>
           <Button size="sm" onClick={(e) => { e.stopPropagation(); setCreateOpen(true); }}>
             <Plus size={16} /> Post
           </Button>

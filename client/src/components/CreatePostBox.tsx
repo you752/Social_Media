@@ -5,6 +5,7 @@ import { Button } from "@/components/common/Button";
 import * as postApi from "@/api/post.api";
 import { getApiErrorMessage } from "@/api/axios";
 import { useToast } from "@/hooks/useToast";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { User } from "@/types/user";
 import type { Post } from "@/types/post";
 
@@ -19,6 +20,7 @@ export function CreatePostBox({ user, onCreated }: CreatePostBoxProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
+  const isSmallMobile = useMediaQuery("(max-width: 480px)");
   const canPost = Boolean(content.trim() || image);
   const firstName = user.firstName || user.username || "there";
 
@@ -53,7 +55,7 @@ export function CreatePostBox({ user, onCreated }: CreatePostBoxProps) {
         <textarea
           value={content}
           onChange={(event) => setContent(event.target.value)}
-          placeholder={`What's on your mind, ${firstName}?`}
+          placeholder={isSmallMobile ? "What's on your mind?" : `What's on your mind, ${firstName}?`}
           aria-label="Create a post"
           maxLength={5000}
           rows={2}
