@@ -29,6 +29,7 @@ interface UserDirectoryRecord {
   lastName?: string;
   unique_name?: string;
   profileImage?: string;
+  email?: string;
   [key: string]: unknown;
 }
 
@@ -42,7 +43,6 @@ class UserService {
   async getData(user_id: string) {
     const userData = await this.userRepository.findById({
       id: user_id,
-      includeAdmin: true,
     });
 
     if (!userData) {
@@ -64,10 +64,7 @@ class UserService {
   }
 
   async getProfile(user_id: string, currentUserId: string) {
-    const userData = await this.userRepository.findById({
-      id: user_id,
-      includeAdmin: user_id === currentUserId,
-    });
+    const userData = await this.userRepository.findById({ id: user_id });
     if (!userData) throw new NotFoundException("User not found");
 
     const friendRecords = await friendModel.find({
@@ -118,19 +115,13 @@ class UserService {
 
   async getSuggestions(userId: string, limit: number) {
     const users = await this.getUsers(userId, true);
-    return users.slice(0, limit).map((user) => ({
-      _id: String(user._id),
-      name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "",
-      username: user.unique_name ?? "",
-      avatar: user.profileImage ?? "",
-    }));
+    return users.slice(0, limit);
   }
 
   async updateCover(user_id: string, cover: string) {
     const user = await this.userRepository.findByIdAndUpdate({
       id: user_id,
       data: { cover },
-      includeAdmin: true,
     });
     if (!user) throw new NotFoundException("User not found");
     return { cover: user.cover ?? "" };
@@ -188,17 +179,13 @@ class UserService {
 
     const excludedUserIds = [...friendshipStatuses.keys()];
     const excludedIds = discoverableOnly ? [...excludedUserIds, userId] : [userId];
-    const userFilter = discoverableOnly
-      ? {
-          _id: { $nin: excludedIds },
-          confirmEmail: true,
-          isBlocked: { $ne: true },
-        }
-      : { _id: { $nin: excludedIds } };
+    const userFilter: { _id: { $nin: string[] } } = { _id: { $nin: excludedIds } };
 
     const users: UserDirectoryRecord[] = await this.userRepository.findAll({
       filter: userFilter,
-      select: "_id username firstName lastName unique_name profileImage",
+      select: discoverableOnly
+        ? "_id username firstName lastName unique_name profileImage"
+        : "_id username firstName lastName email unique_name profileImage",
       lean: true,
     });
 
@@ -238,7 +225,6 @@ class UserService {
 
     const userData = await this.userRepository.findById({
       id: user_id,
-      includeAdmin: true,
     });
 
     if (!userData) {
@@ -263,7 +249,6 @@ class UserService {
           unique_name: targetUniqueName,
           _id: { $ne: user_id },
         },
-        includeAdmin: true,
       });
 
       if (uniqueNameExist) {
@@ -317,7 +302,6 @@ class UserService {
     const updatedUser = await this.userRepository.findByIdAndUpdate({
       id: user_id,
       data: updatedFields,
-      includeAdmin: true,
     });
 
     if (!updatedUser) {
@@ -345,12 +329,11 @@ class UserService {
   async deleteUser({ user_id }: { user_id: string }) {
     const userData = await this.userRepository.findById({
       id: user_id,
-      includeAdmin: true,
     });
     if (!userData) {
       throw new NotFoundException("User not found");
     }
-    const deletedUser = await this.userRepository.findByIdAndDelete(user_id, true);
+    const deletedUser = await this.userRepository.findByIdAndDelete(user_id);
 
     if (!deletedUser) {
       throw new NotFoundException("User not found");

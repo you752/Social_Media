@@ -3,16 +3,6 @@ import mongoose from "mongoose";
 import { IUser } from "../../common/interfaces/user.interface";
 import { GenderEnum, providerEnum, UserRoleEnum } from "../../common/index";
 
-declare module "mongoose" {
-  interface QueryOptions<DocType = unknown> {
-    includeAdmin?: boolean;
-  }
-
-  interface AggregateOptions {
-    includeAdmin?: boolean;
-  }
-}
-
 const userSchema = new mongoose.Schema<IUser>(
   {
     username: {
@@ -47,7 +37,10 @@ const userSchema = new mongoose.Schema<IUser>(
         return this.provider === providerEnum.SYSTEM;
       },
     },
-  
+    passwordChangedAt: {
+      type: Date,
+    },
+
     age: {
       type: Number,
     },
@@ -109,20 +102,6 @@ userSchema.pre("validate", function () {
     this.lastName = lastName.join(" ");
   }
 
-});
-
-userSchema.pre(/^find/, function (this: mongoose.Query<unknown, IUser>) {
-  if (!this.getOptions().includeAdmin) {
-    this.where({ role: { $ne: UserRoleEnum.ADMIN } });
-  }
-});
-
-userSchema.pre("aggregate", function () {
-  if (!this.options.includeAdmin) {
-    this.pipeline().unshift({
-      $match: { role: { $ne: UserRoleEnum.ADMIN } },
-    });
-  }
 });
 
 export const userModel = mongoose.model<IUser>("User", userSchema);

@@ -1,7 +1,7 @@
 
 import { api } from "./axios";
 import { unwrap } from "@/types/api";
-import type { UpdateProfilePayload, User, UserProfile, UserSuggestion } from "@/types/user";
+import type { UpdateProfilePayload, User, UserProfile } from "@/types/user";
 
 export interface UserSettings {
   notifications: boolean;
@@ -44,7 +44,7 @@ export async function getUsers(options: { discoverableOnly?: boolean } = {}) {
 
 export async function getSuggestions(limit = 10) {
   const res = await api.get("/user/suggestions", { params: { limit } });
-  return unwrap<UserSuggestion[]>(res.data);
+  return unwrap<User[]>(res.data);
 }
 
 export async function getUserProfile(userId: string) {

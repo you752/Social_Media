@@ -10,7 +10,6 @@ export interface Message {
   read?: boolean;
   readAt?: string;
   sender?: User;
-  recipient?: User;
   [key: string]: unknown;
 }
 

@@ -183,7 +183,6 @@ class AuthService {
       filter: {
         $or: [{ email }, { unique_name: normalizedUniqueName }],
       },
-      includeAdmin: true,
     });
 
     if (isUserExist) {
@@ -225,7 +224,6 @@ class AuthService {
 
     const user = await this.userRepository.findOne({
       filter: { email },
-      includeAdmin: true,
     });
 
     if (!user || !user.password) {
@@ -267,7 +265,6 @@ class AuthService {
 
     const user = await this.userRepository.findOne({
       filter: { email },
-      includeAdmin: true,
     });
 
     if (!user) {
@@ -305,7 +302,6 @@ class AuthService {
     await this.userRepository.findOneAndUpdate({
       filter: { email },
       data: { confirmEmail: true },
-      includeAdmin: true,
     });
 
     await redisService.deleteData(this.otpKey(email));
@@ -326,7 +322,6 @@ class AuthService {
 
     const user = await this.userRepository.findOne({
       filter: { email },
-      includeAdmin: true,
     });
 
     if (!user) {
@@ -362,7 +357,6 @@ class AuthService {
 
     const user = await this.userRepository.findOne({
       filter: { email },
-      includeAdmin: true,
     });
 
     if (user) {
@@ -388,7 +382,6 @@ class AuthService {
 
     const user = await this.userRepository.findOne({
       filter: { email },
-      includeAdmin: true,
     });
 
     if (!user) {
@@ -460,7 +453,6 @@ class AuthService {
 
     const user = await this.userRepository.findOne({
       filter: { email },
-      includeAdmin: true,
     });
 
     if (!user) {
@@ -482,7 +474,6 @@ class AuthService {
     await this.userRepository.findOneAndUpdate({
       filter: { email },
       data: { password: hashedPassword, passwordChangedAt },
-      includeAdmin: true,
     });
 
     await redisService.deleteData(this.forgotResetTokenKey(email));
@@ -501,7 +492,6 @@ class AuthService {
     const user = await this.userRepository.findById({
       id: userId,
       select: "+password",
-      includeAdmin: true,
     });
     if (!user?.password) {
       throw new BadRequestException("Password change is unavailable for this account");
@@ -532,7 +522,6 @@ class AuthService {
       id: userId,
       data: { password: hashedPassword, passwordChangedAt },
       select: "-password",
-      includeAdmin: true,
     });
     if (!updatedUser) {
       throw new NotFoundException("User not found");
@@ -604,7 +593,6 @@ class AuthService {
 
     const existUser = await this.userRepository.findOne({
       filter: { email },
-      includeAdmin: true,
     });
 
     if (existUser) {
@@ -634,10 +622,7 @@ class AuthService {
     
     let unique_name = `${email.split("@")[0] || "google-user"}_${Math.floor(Math.random() * 10000)}`;
     
-    while (await this.userRepository.findOne({
-      filter: { unique_name },
-      includeAdmin: true,
-    })) {
+    while (await this.userRepository.findOne({ filter: { unique_name } })) {
       unique_name = `${email.split("@")[0] || "google-user"}_${Math.floor(Math.random() * 100000)}`;
     }
 

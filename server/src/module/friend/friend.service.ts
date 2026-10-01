@@ -196,7 +196,7 @@ export class friendservice {
 
     const users = await this.userRepository.findAll({
       filter: { _id: { $in: [...new Set(otherUserIds)] } },
-      select: "_id username firstName lastName unique_name profileImage",
+      select: "_id username firstName lastName email unique_name profileImage",
       lean: true,
     });
 
@@ -234,7 +234,7 @@ export class friendservice {
     const senderIds = requests.map((req: any) => req.userId).filter(Boolean);
     const senders = await this.userRepository.findAll({
       filter: { _id: { $in: senderIds } },
-      select: "_id username firstName lastName unique_name profileImage",
+      select: "_id username firstName lastName email unique_name profileImage",
       lean: true,
     });
 

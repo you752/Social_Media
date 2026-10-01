@@ -1,7 +1,6 @@
 import { Bookmark, Grid2X2, Info, Pencil } from "lucide-react";
 import type { User } from "@/types/user";
-import { displayName } from "@/utils/getUser";
-import { Avatar } from "@/components/common/Avatar";
+import { displayName, initials } from "@/utils/getUser";
 import { CoverImage } from "@/components/CoverImage";
 
 export type ProfileTab = "posts" | "bookmarks" | "about";
@@ -34,6 +33,9 @@ export function ProfileHeader({
   onCoverChange,
 }: ProfileHeaderProps) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "Wave user";
+  const fallbackAvatar = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" fill="#09091a"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" fill="#8b8ba7" font-family="sans-serif" font-size="40" font-weight="700">${initials(user)}</text></svg>`,
+  )}`;
   const stats = [
     { value: friendsCount, label: "Friends" },
     { value: postsCount, label: "Posts" },
@@ -45,7 +47,11 @@ export function ProfileHeader({
       <CoverImage cover={user.cover} editable={Boolean(onCoverChange)} onCoverChange={onCoverChange} />
       <div className="profile-header-body">
         <div className="profile-avatar-edit-row">
-          <Avatar user={user} size="xl" className="profile-header-avatar" />
+          <img
+            className="relative z-10 -mt-14 block h-28 w-28 rounded-full object-cover ring-4 ring-surface sm:-mt-16 sm:h-32 sm:w-32"
+            src={user.profileImage || fallbackAvatar}
+            alt={displayName(user)}
+          />
           {onEdit && (
             <button type="button" className="profile-edit-button" onClick={onEdit}>
               <Pencil size={15} /> Edit

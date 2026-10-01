@@ -12,13 +12,11 @@ export class DatabaseRepository<T> {
     select,
     populate,
     lean,
-    includeAdmin,
   }: {
     id: string;
     select?: string;
     populate?: string;
     lean?: boolean;
-    includeAdmin?: boolean;
   }) {
     let query: any = this.Model.findById(id);
 
@@ -33,9 +31,6 @@ export class DatabaseRepository<T> {
     if (lean) {
       query = query.lean();
     }
-    if (includeAdmin) {
-      query = query.setOptions({ includeAdmin: true });
-    }
 
     return await query;
   }
@@ -45,13 +40,11 @@ export class DatabaseRepository<T> {
     select,
     populate,
     lean,
-    includeAdmin,
   }: {
     filter: any;
     select?: string;
     populate?: string;
     lean?: boolean;
-    includeAdmin?: boolean;
   }) {
     let query: any = this.Model.findOne(filter);
 
@@ -66,9 +59,6 @@ export class DatabaseRepository<T> {
     if (lean) {
       query = query.lean();
     }
-    if (includeAdmin) {
-      query = query.setOptions({ includeAdmin: true });
-    }
 
     return await query;
   }
@@ -78,13 +68,11 @@ export class DatabaseRepository<T> {
     select,
     populate,
     lean,
-    includeAdmin,
   }: {
     filter?: any;
     select?: string;
     populate?: string;
     lean?: boolean;
-    includeAdmin?: boolean;
   }) {
     let query: any = this.Model.find(filter || {});
 
@@ -98,9 +86,6 @@ export class DatabaseRepository<T> {
 
     if (lean) {
       query = query.lean();
-    }
-    if (includeAdmin) {
-      query = query.setOptions({ includeAdmin: true });
     }
 
     return await query;
@@ -116,14 +101,12 @@ export class DatabaseRepository<T> {
     select,
     populate,
     lean,
-    includeAdmin,
   }: {
     id: string;
     data: any;
     select?: string;
     populate?: string;
     lean?: boolean;
-    includeAdmin?: boolean;
   }) {
     let query: any = this.Model.findByIdAndUpdate(id, data, {
       returnDocument: "after",
@@ -140,9 +123,6 @@ export class DatabaseRepository<T> {
     if (lean) {
       query = query.lean();
     }
-    if (includeAdmin) {
-      query = query.setOptions({ includeAdmin: true });
-    }
 
     return await query;
   }
@@ -151,12 +131,8 @@ export class DatabaseRepository<T> {
     return await this.Model.deleteOne(filter);
   }
 
-  async findByIdAndDelete(id: string, includeAdmin = false) {
-    let query = this.Model.findByIdAndDelete(id);
-    if (includeAdmin) {
-      query = query.setOptions({ includeAdmin: true });
-    }
-    return await query;
+  async findByIdAndDelete(id: string) {
+    return await this.Model.findByIdAndDelete(id);
   }
 
   async countDocuments(filter?: any) {
@@ -172,14 +148,12 @@ export class DatabaseRepository<T> {
     select,
     populate,
     lean,
-    includeAdmin,
   }: {
     filter: any;
     data: any;
     select?: string;
     populate?: string;
     lean?: boolean;
-    includeAdmin?: boolean;
   }) {
     let query: any = this.Model.findOneAndUpdate(filter, data, {
       returnDocument: "after",
@@ -196,9 +170,6 @@ export class DatabaseRepository<T> {
     if (lean) {
       query = query.lean();
     }
-    if (includeAdmin) {
-      query = query.setOptions({ includeAdmin: true });
-    }
 
     return await query;
   }
@@ -207,3 +178,5 @@ export class DatabaseRepository<T> {
     return await this.Model.exists(filter);
   }
 }
+
+

@@ -1,6 +1,5 @@
 
 import express, { Request, Response } from "express";
-import path from "node:path";
 import authRouter from "./module/auth/auth.controller";
 import cors from "cors";
 import helmet from "helmet";
@@ -37,8 +36,10 @@ const bootstrap = async () => {
 
   await connectDB();
   await connectRS();
+
+  // app.all("/graphql", createHandler({ schema: schema, context: (req) => ({ req }) }));
+
   app.use(express.json());
-  app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
   app.use("/auth", authRouter);
   app.use("/user", userRouter);

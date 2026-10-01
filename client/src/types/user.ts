@@ -5,7 +5,6 @@
 export interface User {
   _id: string;
   id?: string;
-  name?: string;
   username?: string;
   uniqueName?: string;
   firstName?: string;
@@ -17,8 +16,7 @@ export interface User {
   bio?: string;
   role?: number;
   isBlocked?: boolean;
-  profileImage?: AvatarValue;
-  avatar?: AvatarValue;
+  profileImage?: string;
   cover?: string;
   // Friendship state relative to the current viewer, if the backend
   // includes it on a user object (ASSUMPTION - field name may differ).
@@ -30,15 +28,6 @@ export interface User {
   postsCount?: number;
   bookmarksCount?: number;
   [key: string]: unknown;
-}
-
-export type AvatarValue = string | { secure_url?: string | null } | null;
-
-export interface UserSuggestion {
-  _id: string;
-  name: string;
-  username: string;
-  avatar: AvatarValue;
 }
 
 export enum UserRoleEnum {

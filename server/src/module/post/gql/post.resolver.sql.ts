@@ -26,9 +26,7 @@ class PostResolver {
 
     const decoded = await TokenService.verifyAccessToken(token);
 
-    const user = await userModel
-      .findById(decoded.id)
-      .setOptions({ includeAdmin: true });
+    const user = await userModel.findById(decoded.id);
     if (!user) throw new Error("User not found");
 
     return user;

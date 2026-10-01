@@ -83,10 +83,7 @@ export class TokenService {
     }
 
     const verified = await this.verifyRefreshToken(refreshToken, role);
-    const user = await userModel
-      .findById(verified.id)
-      .setOptions({ includeAdmin: true })
-      .select("passwordChangedAt");
+    const user = await userModel.findById(verified.id).select("passwordChangedAt");
     if (
       !user ||
       (user.passwordChangedAt &&
@@ -134,10 +131,7 @@ export class TokenService {
   }
 
   static async isIssuedBeforePasswordChange(userId: string, issuedAt?: number) {
-    const user = await userModel
-      .findById(userId)
-      .setOptions({ includeAdmin: true })
-      .select("passwordChangedAt");
+    const user = await userModel.findById(userId).select("passwordChangedAt");
     if (!user) return true;
     return Boolean(
       user.passwordChangedAt &&
@@ -194,10 +188,7 @@ export class TokenService {
 
         const decoded = await TokenService.verifyAccessToken(token, role);
 
-        const user = await userModel
-          .findById(decoded.id)
-          .setOptions({ includeAdmin: true })
-          .select("-password");
+        const user = await userModel.findById(decoded.id).select("-password");
 
         if (!user) {
           throw new Error("User not found");

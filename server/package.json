@@ -4,7 +4,6 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node --test test/user-suggestions.test.cjs",
     "start:dev": "cross-env NODE_ENV=dev concurrently \"tsc --watch\" \"node --watch dist/main.js\"",
     "start:prod": "cross-env NODE_ENV=prod concurrently \"tsc --watch\" \"node --watch dist/main.js\"",
     "start": "node dist/main.js"

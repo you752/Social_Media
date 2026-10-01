@@ -15,7 +15,6 @@ import { PostCard } from "@/components/posts/PostCard";
 import { EditPostModal } from "@/components/posts/EditPostModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getAvatarUrl } from "@/utils/getUser";
 import * as friendApi from "@/api/friend.api";
 import * as postApi from "@/api/post.api";
 import * as userApi from "@/api/user.api";
@@ -223,7 +222,7 @@ function EditProfileModal({ open, onClose, onSaved }: { open: boolean; onClose: 
   const [gender, setGender] = useState(user?.gender ?? "");
   const [bio, setBio] = useState(user?.bio ?? "");
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(getAvatarUrl(user));
+  const [preview, setPreview] = useState<string | null>(user?.profileImage ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -234,7 +233,7 @@ function EditProfileModal({ open, onClose, onSaved }: { open: boolean; onClose: 
     setPhoneNumber(user?.phoneNumber ?? "");
     setGender(user?.gender ?? "");
     setBio(user?.bio ?? "");
-    setPreview(getAvatarUrl(user));
+    setPreview(user?.profileImage ?? null);
     setProfileImage(null);
   }, [open, user]);
 

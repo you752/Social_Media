@@ -6091,17 +6091,6 @@ html {
     height: 128px;
     margin-top: -64px;
   }
-
-  .profile-avatar-edit-row > .profile-header-avatar,
-  .profile-avatar-edit-row > .profile-header-avatar img,
-  .profile-avatar-edit-row > .profile-header-avatar .avatar-initials {
-    width: 128px;
-    height: 128px;
-  }
-
-  .profile-avatar-edit-row > .profile-header-avatar {
-    margin-top: -64px;
-  }
 }
 
 .profile-header-body {
@@ -6127,23 +6116,6 @@ html {
   flex-shrink: 0;
   background: var(--surface-2);
   box-shadow: 0 0 0 4px var(--surface);
-}
-
-.profile-avatar-edit-row > .profile-header-avatar,
-.profile-avatar-edit-row > .profile-header-avatar img,
-.profile-avatar-edit-row > .profile-header-avatar .avatar-initials {
-  width: 112px;
-  height: 112px;
-}
-
-.profile-avatar-edit-row > .profile-header-avatar {
-  margin-top: -56px;
-  box-shadow: 0 0 0 4px var(--surface);
-}
-
-.profile-avatar-edit-row > .profile-header-avatar img,
-.profile-avatar-edit-row > .profile-header-avatar .avatar-initials {
-  border-radius: 50%;
 }
 
 .profile-edit-button {
