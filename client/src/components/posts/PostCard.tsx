@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, MessageSquare, Heart, Share2, Bookmark } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, MessageSquare, Heart, Share2, Bookmark, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Avatar } from "@/components/common/Avatar";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { CommentList } from "@/components/comments/CommentList";
@@ -7,6 +8,7 @@ import { displayName, resolveUser } from "@/utils/getUser";
 import { timeAgo } from "@/utils/date";
 import { useAuth } from "@/hooks/useAuth";
 import * as postApi from "@/api/post.api";
+import * as friendApi from "@/api/friend.api";
 import { getApiErrorMessage } from "@/api/axios";
 import { useToast } from "@/hooks/useToast";
 import type { Post } from "@/types/post";
@@ -20,6 +22,7 @@ interface PostCardProps {
 export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const author = resolveUser(post.author);
   const isOwner = user?._id === author._id;
 
@@ -34,6 +37,7 @@ export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
   const [likesCount, setLikesCount] = useState(post.likesCount ?? 0);
   
   const [bookmarked, setBookmarked] = useState(post.bookmarked ?? false);
+  const [friendshipStatus, setFriendshipStatus] = useState(author.friendshipStatus ?? "none");
   
   const [sharesCount, setSharesCount] = useState(post.sharesCount ?? 0);
 
@@ -42,6 +46,7 @@ export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
     setLiked(post.liked ?? false);
     setLikesCount(post.likesCount ?? 0);
     setBookmarked(post.bookmarked ?? false);
+    setFriendshipStatus(author.friendshipStatus ?? "none");
     setSharesCount(post.sharesCount ?? 0);
   }, [post]);
 
@@ -93,6 +98,18 @@ export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
     }
   }
 
+  async function handleFollow() {
+    if (!author._id) return;
+    try {
+      await friendApi.sendFriendRequest(author._id);
+      setFriendshipStatus("pending-sent");
+      setMenuOpen(false);
+      showToast("Friend request sent", "success");
+    } catch (err) {
+      showToast(getApiErrorMessage(err, "Could not send request"), "error");
+    }
+  }
+
   async function handleShare() {
     try {
       setSharesCount(prev => prev + 1);
@@ -118,27 +135,52 @@ export function PostCard({ post, onDeleted, onEdit }: PostCardProps) {
         <Avatar user={author} size="md" />
         <div className="post-header-meta">
           <strong>{displayName(author)}</strong>
-          {taggedUsers && <span className="tagged-users"> with {taggedUsers}</span>}
           <div className="post-time">{timeAgo(post.createdAt)}</div>
+          {taggedUsers && <span className="tagged-users">with {taggedUsers}</span>}
         </div>
 
         <div className="post-menu">
-          <button className={`icon-btn${bookmarked ? " icon-btn-active" : ""}`} onClick={() => handleBookmark()} aria-label="Bookmark">
-            <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
+          <button className={`icon-btn${bookmarked ? " icon-btn-active" : ""}`} onClick={() => handleBookmark()} aria-label={bookmarked ? "Remove bookmark" : "Bookmark"}>
+            <Bookmark size={20} fill={bookmarked ? "currentColor" : "none"} />
           </button>
-          
-          {isOwner && (
-            <>
-              <button className="icon-btn" onClick={() => setMenuOpen((v) => !v)} aria-label="Post options">
-                <MoreHorizontal size={18} />
-              </button>
-              {menuOpen && (
-                <div className="dropdown menu-dropdown">
+          <button
+            className="icon-btn"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Post options"
+            aria-expanded={menuOpen}
+          >
+            <MoreHorizontal size={20} />
+          </button>
+          {menuOpen && (
+            <div className="dropdown menu-dropdown">
+              {!isOwner && (
+                <button
+                  onClick={() =>
+                    friendshipStatus === "pending-received"
+                      ? navigate("/friend-requests")
+                      : void handleFollow()
+                  }
+                  disabled={friendshipStatus !== "none" && friendshipStatus !== "pending-received"}
+                >
+                  <UserPlus size={14} />
+                  {friendshipStatus === "friends"
+                    ? "Following"
+                    : friendshipStatus === "pending" || friendshipStatus === "pending-sent"
+                      ? "Request sent"
+                      : friendshipStatus === "pending-received"
+                        ? "Respond to request"
+                        : friendshipStatus === "blocked"
+                          ? "Unavailable"
+                          : "Follow"}
+                </button>
+              )}
+              {isOwner && (
+                <>
                   <button onClick={() => { onEdit?.(post); setMenuOpen(false); }}><Pencil size={14} /> Edit</button>
                   <button onClick={() => { setConfirmDelete(true); setMenuOpen(false); }} className="danger-text"><Trash2 size={14} /> Delete</button>
-                </div>
+                </>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>

@@ -3,7 +3,6 @@ import { ToastProvider } from "@/context/ToastContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { AppRoutes } from "@/routes/AppRoutes";
 import { ThemeProvider } from "@/hooks/useTheme";
-import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 export default function App() {
   return (
@@ -12,7 +11,6 @@ export default function App() {
         <ToastProvider>
           <NotificationProvider>
             <AppRoutes />
-            <ThemeToggle />
           </NotificationProvider>
         </ToastProvider>
       </AuthProvider>

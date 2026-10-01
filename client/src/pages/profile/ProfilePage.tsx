@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { FileText, Info } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { Bookmark, FileText, Info, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ImagePicker } from "@/components/common/ImagePicker";
@@ -24,7 +24,7 @@ import type { User, UserProfile } from "@/types/user";
 
 export function ProfilePage() {
   const { userId, username: routeUsername } = useParams();
-  const { user, refreshProfile, setUser } = useAuth();
+  const { user, refreshProfile, setUser, logout } = useAuth();
   const { showToast } = useToast();
   const isOwnProfile = !userId && !routeUsername;
   const [publicProfile, setPublicProfile] = useState<UserProfile | null>(null);
@@ -120,6 +120,13 @@ export function ProfilePage() {
           setUser({ ...profileUser, cover });
         } : undefined}
       />
+      {isOwnProfile && (
+        <nav className="mobile-profile-actions" aria-label="Account actions">
+          <Link to="/bookmarks"><Bookmark size={18} /> Saved posts</Link>
+          <Link to="/settings"><Settings size={18} /> Settings</Link>
+          <button type="button" onClick={() => void logout()}><LogOut size={18} /> Logout</button>
+        </nav>
+      )}
       <div className="profile-content-grid">
         <IntroCard user={profileUser} />
         <FeedColumn>

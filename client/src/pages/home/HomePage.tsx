@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Plus, Newspaper } from "lucide-react";
 import { Avatar } from "@/components/common/Avatar";
 import { Button } from "@/components/common/Button";
@@ -15,12 +16,21 @@ import type { Post } from "@/types/post";
 import { FeedColumn } from "@/components/FeedColumn";
 
 export function HomePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useToast();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+
+  useEffect(() => {
+    const routeState = location.state as { openCreatePost?: boolean } | null;
+    if (!routeState?.openCreatePost) return;
+    setCreateOpen(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     let active = true;

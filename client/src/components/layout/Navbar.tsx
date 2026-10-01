@@ -1,16 +1,25 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Search, Bell } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useNotifications } from "@/hooks/useNotifications";
 import { WaveBrand } from "@/components/common/WaveBrand";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 export function Navbar() {
   const [query, setQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const { unreadCount } = useNotifications();
+  const location = useLocation();
   const navigate = useNavigate();
   const closeNotifications = useCallback(() => setNotifOpen(false), []);
+
+  useEffect(() => {
+    const routeState = location.state as { openNotifications?: boolean } | null;
+    if (!routeState?.openNotifications) return;
+    setNotifOpen(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +56,7 @@ export function Navbar() {
           )}
         </button>
         {notifOpen && <NotificationDropdown onClose={closeNotifications} />}
+        <ThemeToggle />
       </div>
     </header>
   );

@@ -16,6 +16,7 @@ import { ResetPasswordPage } from "@/pages/auth/ResetPasswordPage";
 import { HomePage } from "@/pages/home/HomePage";
 import { ProfilePage } from "@/pages/profile/ProfilePage";
 import { UsersPage } from "@/pages/users/UsersPage";
+import { DiscoverPage } from "@/pages/discover/DiscoverPage";
 import { FriendsPage } from "@/pages/friends/FriendsPage";
 import { FriendRequestsPage } from "@/pages/friends/FriendRequestsPage";
 import { ChatPage } from "@/pages/chat/ChatPage";
@@ -61,7 +62,7 @@ export function AppRoutes() {
           <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/users" element={<UsersPage />} />
-          <Route path="/discover" element={<UsersPage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/friend-requests" element={<FriendRequestsPage />} />
           <Route path="/chat" element={<ChatPage />} />
